@@ -260,7 +260,7 @@ export default function Home() {
                             <textarea value={selectedRecipe.ingredients} onChange={(e) => setSelectedRecipe({...selectedRecipe, ingredients: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
                             <textarea value={selectedRecipe.directions} onChange={(e) => setSelectedRecipe({...selectedRecipe, directions: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
                           </div>
-                          <button onClick={updateRecipe} className="w-full p-4 bg-emerald-700 text-white font-black uppercase tracking-widest rounded-xl">Update File</button>
+                          <button onClick={updateRecipe} className="w-full p-4 bg-[#FF4500] text-white font-black uppercase tracking-widest rounded-xl hover:bg-[#E63E00] transition-all">Update Cookbook</button>
                         </div>
                       ) : isCookingMode ? (
                         <div className="absolute inset-6 overflow-y-auto custom-scrollbar space-y-12 pb-20">
@@ -289,22 +289,10 @@ export default function Home() {
                       ) : (
                         <div className="grid grid-cols-2 h-full gap-8 overflow-hidden">
                           <div className="flex flex-col h-full border-r border-gray-800 pr-6 overflow-hidden">
-                            <div className="flex justify-between items-center mb-6 flex-shrink-0">
-                                <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest">Ingredients</h4>
-                                <div className="flex gap-2 text-[10px] font-black uppercase">
-                                    <button onClick={copyCheckedItems} className="text-[#FF4500] hover:underline">Copy</button>
-                                    <span className="text-gray-800">/</span>
-                                    <button onClick={clearChecks} className="text-gray-500 hover:text-white">Clear</button>
-                                </div>
-                            </div>
+                            <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Ingredients</h4>
                             <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
                               {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
-                                    <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
-                                        {checkedIngredients[i] && <span className="text-[8px] font-bold">✓</span>}
-                                    </div>
-                                    <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ing}</span>
-                                </div>
+                                <div key={i} className="flex items-start gap-3 text-sm text-gray-300"><span>•</span>{ing}</div>
                               ))}
                             </div>
                           </div>
@@ -354,7 +342,7 @@ export default function Home() {
                     <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                     <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                   </div>
-                  <button onClick={saveRecipe} className="w-full p-4 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest transition-all">Secure to Vault</button>
+                  <button onClick={saveRecipe} className="w-full p-4 bg-[#FF4500] text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-lg hover:bg-[#E63E00]">SAVE TO COOKBOOK</button>
                 </div>
               )}
             </div>
