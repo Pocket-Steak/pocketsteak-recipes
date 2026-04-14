@@ -132,14 +132,18 @@ export default function Home() {
         <div className="w-full max-w-2xl flex flex-col gap-4 mt-10">
           <button onClick={() => setView('vault')} className="w-full p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col items-center gap-2 hover:border-[#FF4500] hover:bg-[#222222] transition-all group shadow-xl">
             <span className="text-[#FFFFFF] font-black text-3xl italic tracking-tighter uppercase group-hover:scale-105 transition-transform">Recipe Box</span>
-            <span className="text-[#FF4500] text-xs uppercase font-bold tracking-widest">Just like grandma’s recipe book, but with tech</span>
+            <span className="text-[#FF4500] text-xs uppercase font-bold tracking-widest text-center">Just like grandma’s recipe book, but with tech</span>
           </button>
           
           <div className="grid grid-cols-2 gap-4">
             <button onClick={() => { setView('scratch'); setShowEditor(true); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-emerald-500 transition-all">
-              <span className="text-[#FFFFFF] font-bold text-lg leading-none">From Scratch</span>
+              <div className="flex flex-col">
+                <span className="text-[#FFFFFF] font-bold text-lg leading-none">From Scratch</span>
+                <span className="text-[#FF4500] text-[9px] font-black uppercase tracking-tighter">Manual Intake</span>
+              </div>
               <p className="text-[#FF4500] text-[11px] leading-tight">Type or paste ingredients and write your own directions.</p>
             </button>
+
             <button onClick={() => { setView('premade'); setShowEditor(false); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-[#FF4500] transition-all">
               <div className="flex flex-col">
                 <span className="text-[#FFFFFF] font-bold text-lg leading-none">Chef's Special</span>
