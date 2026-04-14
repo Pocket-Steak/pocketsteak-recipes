@@ -25,6 +25,13 @@ export default function Home() {
   const [checkedDirections, setCheckedDirections] = useState({});
   const [isCookingMode, setIsCookingMode] = useState(false);
 
+  // RESET LOGIC: Clears checkboxes when switching views
+  const toggleCookingMode = () => {
+    setIsCookingMode(!isCookingMode);
+    setCheckedIngredients({});
+    setCheckedDirections({});
+  };
+
   const streamText = (field, text) => {
     if (!text) return;
     let i = 0;
@@ -81,13 +88,15 @@ export default function Home() {
     setShowButcherBlock(false);
   };
 
-  const copyToSheets = () => {
+  const copyCheckedItems = () => {
     const list = selectedRecipe.ingredients.split('\n')
       .filter((_, index) => checkedIngredients[index])
       .join('\n');
     if (list) {
       navigator.clipboard.writeText(list);
-      alert("Copied checked items to clipboard!");
+      alert("Copied checked items!");
+    } else {
+      alert("Check some ingredients first!");
     }
   };
 
@@ -130,45 +139,40 @@ export default function Home() {
 
           {view === 'vault' ? (
             <div className="flex flex-col md:flex-row gap-6 h-[75vh]">
-              {/* Left Sidebar: Search and List */}
+              {/* Sidebar */}
               <div className="w-full md:w-1/4 flex flex-col gap-4">
                 <input placeholder="Search vault..." className="bg-[#1A1A1A] border border-gray-800 p-3 rounded-lg outline-none focus:border-[#FF4500]" onChange={(e) => setSearchQuery(e.target.value)} />
-                <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                   {filteredVault.map(item => (
-                    <div key={item.id} onClick={() => { setSelectedRecipe(item); setCheckedIngredients({}); setCheckedDirections({}); }} className={`p-4 rounded-xl cursor-pointer border-2 transition-all ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#252525]' : 'border-transparent bg-[#1A1A1A] hover:bg-[#252525]'}`}>
+                    <div key={item.id} onClick={() => { setSelectedRecipe(item); setCheckedIngredients({}); setCheckedDirections({}); setIsCookingMode(false); }} className={`p-4 rounded-xl cursor-pointer border-2 transition-all ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#252525]' : 'border-transparent bg-[#1A1A1A] hover:bg-[#252525]'}`}>
                       <h3 className="font-bold truncate">{item.title}</h3>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Main Content: The Card */}
+              {/* Main Recipe Area */}
               <div className="flex-1 bg-[#1A1A1A] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl relative">
                 {selectedRecipe ? (
                   <>
-                    {/* Header */}
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1e1e1e]">
                       <h2 className="text-3xl font-black text-[#FF4500] uppercase italic tracking-tighter">{selectedRecipe.title}</h2>
-                      <div className="flex gap-3">
-                        <button onClick={() => setIsCookingMode(!isCookingMode)} className={`px-4 py-2 rounded font-bold text-xs uppercase transition-all ${isCookingMode ? 'bg-[#FF4500] text-white' : 'bg-gray-800 text-gray-400'}`}>
-                          {isCookingMode ? 'Exit Cooking Mode' : 'Cooking Mode'}
-                        </button>
-                        {!isCookingMode && <button onClick={copyToSheets} className="bg-emerald-600 px-4 py-2 rounded font-bold text-xs uppercase hover:bg-emerald-500">Copy to Sheets</button>}
-                      </div>
+                      <button onClick={toggleCookingMode} className={`px-4 py-2 rounded font-bold text-xs uppercase transition-all ${isCookingMode ? 'bg-[#FF4500] text-white shadow-lg shadow-[#FF4500]/20' : 'bg-gray-800 text-gray-400'}`}>
+                        {isCookingMode ? 'Exit Cooking Mode' : 'Cooking Mode'}
+                      </button>
                     </div>
 
-                    {/* Content Area */}
                     <div className="flex-1 overflow-hidden p-6">
                       {isCookingMode ? (
-                        /* STACKED COOKING VIEW */
+                        /* COOKING MODE: STACKED & DIMMABLE */
                         <div className="h-full overflow-y-auto space-y-12 pr-4 custom-scrollbar">
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-sm tracking-[0.2em] mb-4">Phase 1: Prep Ingredients</h4>
                             <div className="space-y-2">
                               {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})} className={`flex items-center gap-4 p-3 rounded-lg cursor-pointer border transition-all ${checkedIngredients[i] ? 'bg-black/40 border-transparent opacity-30' : 'bg-[#252525] border-gray-800'}`}>
-                                  <div className={`w-6 h-6 rounded flex items-center justify-center border-2 ${checkedIngredients[i] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>
-                                    {checkedIngredients[i] && '✓'}
+                                <div key={i} onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})} className={`flex items-center gap-4 p-4 rounded-lg cursor-pointer border transition-all ${checkedIngredients[i] ? 'bg-black/40 border-transparent opacity-20 scale-[0.98]' : 'bg-[#252525] border-gray-800 hover:border-gray-600'}`}>
+                                  <div className={`w-6 h-6 rounded flex items-center justify-center border-2 transition-colors ${checkedIngredients[i] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>
+                                    {checkedIngredients[i] && <span className="text-white text-xs font-bold">✓</span>}
                                   </div>
                                   <span className="text-lg font-medium">{ing}</span>
                                 </div>
@@ -179,7 +183,7 @@ export default function Home() {
                             <h4 className="text-[#FF4500] font-black uppercase text-sm tracking-[0.2em] mb-4">Phase 2: Execution</h4>
                             <div className="space-y-4">
                               {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
-                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-5 rounded-xl border-l-4 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black/40 border-gray-800 opacity-20' : 'bg-[#252525] border-[#FF4500]'}`}>
+                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-xl border-l-8 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black/40 border-gray-800 opacity-10 scale-[0.97]' : 'bg-[#252525] border-[#FF4500] hover:bg-[#2a2a2a]'}`}>
                                   <p className="text-lg leading-relaxed">{step}</p>
                                 </div>
                               ))}
@@ -187,24 +191,32 @@ export default function Home() {
                           </section>
                         </div>
                       ) : (
-                        /* SPLIT RECIPE CARD VIEW */
+                        /* CARD VIEW: SPLIT SCREEN */
                         <div className="grid grid-cols-2 h-full gap-8">
-                          {/* Ingredients Side */}
+                          {/* Ingredients */}
                           <div className="flex flex-col h-full border-r border-gray-800 pr-4">
-                            <h4 className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mb-4">Ingredients</h4>
-                            <div className="flex-1 overflow-y-auto space-y-2 pr-2">
+                            <div className="flex justify-between items-center mb-4">
+                              <h4 className="text-gray-500 font-bold uppercase text-[10px] tracking-widest">Ingredients</h4>
+                              <button onClick={copyCheckedItems} className="text-[#FF4500] text-[10px] font-black uppercase border border-[#FF4500]/30 px-2 py-1 rounded hover:bg-[#FF4500]/10 transition-all">
+                                Copy Checked
+                              </button>
+                            </div>
+                            <div className="flex-1 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
                               {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} className="flex items-center gap-3 py-1 group">
-                                  <input type="checkbox" checked={!!checkedIngredients[i]} onChange={(e) => setCheckedIngredients({...checkedIngredients, [i]: e.target.checked})} className="w-4 h-4 accent-[#FF4500] cursor-pointer" />
-                                  <span className={`text-sm ${checkedIngredients[i] ? 'text-gray-600' : 'text-gray-300'}`}>{ing}</span>
+                                <div key={i} className="flex items-start gap-3 group cursor-pointer" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
+                                  <div className={`mt-0.5 w-5 h-5 flex-shrink-0 border-2 rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-[#FF4500]/50'}`}>
+                                    {checkedIngredients[i] && <span className="text-[10px] font-bold">✓</span>}
+                                  </div>
+                                  <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-600 italic' : 'text-gray-300'}`}>{ing}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
-                          {/* Directions Side */}
+
+                          {/* Directions */}
                           <div className="flex flex-col h-full pl-4">
                             <h4 className="text-gray-500 font-bold uppercase text-[10px] tracking-widest mb-4">Directions</h4>
-                            <div className="flex-1 overflow-y-auto space-y-4 pr-2 text-gray-300">
+                            <div className="flex-1 overflow-y-auto space-y-4 pr-2 text-gray-300 custom-scrollbar">
                               {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
                                 <div key={i} className="flex gap-4">
                                   <span className="text-[#FF4500] font-black text-xs mt-1">{i + 1}.</span>
@@ -226,14 +238,14 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            /* SCRAPER / EDITOR VIEW */
+            /* EDITOR VIEW */
             <div className="max-w-3xl mx-auto space-y-6">
               {view === 'premade' && !showEditor && (
-                <div className="p-8 border border-gray-800 rounded-2xl bg-[#1A1A1A] space-y-6 shadow-xl">
+                <div className="p-8 border border-gray-800 rounded-2xl bg-[#1A1A1A] space-y-6">
                   <h2 className="text-2xl font-bold text-[#FF4500]">PASTE RECIPE URL</h2>
                   <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="https://..." className="w-full bg-[#121212] border border-gray-700 rounded p-4 outline-none focus:border-[#FF4500]" />
-                  <button onClick={handleUrlScrape} className={`w-full p-4 bg-[#FF4500] font-bold rounded hover:opacity-90 transition-all ${isProcessing ? 'animate-pulse cursor-not-allowed' : ''}`}>
-                    {isProcessing ? 'SCANNING HORIZON...' : 'FETCH & STREAM'}
+                  <button onClick={handleUrlScrape} className={`w-full p-4 bg-[#FF4500] font-bold rounded ${isProcessing ? 'animate-pulse' : ''}`}>
+                    {isProcessing ? 'SCANNING...' : 'FETCH & STREAM'}
                   </button>
                 </div>
               )}
