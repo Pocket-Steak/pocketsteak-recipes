@@ -25,12 +25,35 @@ export default function Home() {
   const [checkedDirections, setCheckedDirections] = useState({});
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
+  const [showTempHUD, setShowTempHUD] = useState(false);
+
+  // Timer States
+  const [timer, setTimer] = useState(0);
+  const [timerActive, setTimerActive] = useState(false);
+
+  useEffect(() => {
+    let interval;
+    if (timerActive) {
+      interval = setInterval(() => setTimer(prev => prev + 1), 1000);
+    } else {
+      clearInterval(interval);
+    }
+    return () => clearInterval(interval);
+  }, [timerActive]);
+
+  const formatTime = (seconds) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  };
 
   const toggleCookingMode = () => {
     setIsCookingMode(!isCookingMode);
     setIsEditing(false); 
     setCheckedIngredients({});
     setCheckedDirections({});
+    setTimer(0);
+    setTimerActive(false);
   };
 
   const clearChecks = () => {
@@ -177,7 +200,14 @@ export default function Home() {
 
       {view !== 'home' && (
         <div className="w-full max-w-6xl flex flex-col flex-1 overflow-hidden">
-          <button onClick={() => { setView('home'); setShowEditor(false); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} className="text-gray-500 hover:text-white mb-4 font-bold uppercase text-[10px] tracking-[0.2em] transition-colors flex-shrink-0">← Back to Command Center</button>
+          {/* TACTICAL BACK BUTTON */}
+          <button 
+            onClick={() => { setView('home'); setShowEditor(false); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} 
+            className="group mb-4 flex items-center gap-3 px-4 py-2 border border-gray-800 rounded-full bg-[#141414] hover:border-[#FF4500] hover:bg-[#1A1A1A] transition-all duration-300 w-fit shadow-lg flex-shrink-0"
+          >
+            <span className="text-gray-500 group-hover:text-[#FF4500] group-hover:-translate-x-1 transition-all duration-300 text-xs">←</span>
+            <span className="text-gray-400 group-hover:text-white font-black uppercase text-[9px] tracking-[0.25em] transition-all duration-300">Back to Command Center</span>
+          </button>
 
           {view === 'vault' ? (
             <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
@@ -194,24 +224,71 @@ export default function Home() {
               </div>
 
               {/* Main Card */}
-              <div className="flex-1 bg-[#141414] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl">
+              <div className="flex-1 bg-[#141414] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl relative">
+                
+                {/* DONENESS HUD OVERLAY */}
+                {showTempHUD && (
+                  <div className="absolute top-20 right-6 z-50 bg-black/95 border border-[#FF4500]/50 p-6 rounded-2xl shadow-2xl backdrop-blur-md animate-in fade-in zoom-in duration-200 w-64">
+                    <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+                      <span className="text-[#FF4500] font-black uppercase text-[10px] tracking-widest">Target Intel</span>
+                      <button onClick={() => setShowTempHUD(false)} className="text-gray-600 hover:text-white">✕</button>
+                    </div>
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-[9px] text-gray-500 uppercase font-black mb-1">Beef / Lamb</p>
+                        <div className="grid grid-cols-2 text-[10px] gap-1 font-mono">
+                          <span className="text-gray-400">Rare</span><span className="text-white text-right">125°F</span>
+                          <span className="text-gray-400">Med-Rare</span><span className="text-white text-right">135°F</span>
+                          <span className="text-gray-400">Medium</span><span className="text-white text-right">145°F</span>
+                        </div>
+                      </div>
+                      <div>
+                        <p className="text-[9px] text-gray-500 uppercase font-black mb-1">Poultry / Pork</p>
+                        <div className="grid grid-cols-2 text-[10px] gap-1 font-mono">
+                          <span className="text-gray-400">Chicken</span><span className="text-white text-right">165°F</span>
+                          <span className="text-gray-400">Pork Loin</span><span className="text-white text-right">145°F</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
                 {selectedRecipe ? (
                   <>
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A] flex-shrink-0">
-                      <h2 className="text-xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none max-w-[50%]">{selectedRecipe.title}</h2>
-                      <div className="flex gap-2">
+                      <h2 className="text-xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none max-w-[40%] truncate">{selectedRecipe.title}</h2>
+                      
+                      {/* TACTICAL HEADER TOOLS */}
+                      <div className="flex items-center gap-3">
+                        {isCookingMode && (
+                          <div className="flex items-center gap-3 bg-black/40 px-3 py-1.5 rounded-full border border-gray-800 shadow-inner">
+                            <span className="text-[#FF4500] font-mono font-bold text-sm tabular-nums min-w-[40px]">
+                              {formatTime(timer)}
+                            </span>
+                            <button onClick={() => setTimerActive(!timerActive)} className="text-[8px] font-black uppercase tracking-widest hover:text-white text-gray-400 transition-colors">
+                              {timerActive ? "Pause" : "Start"}
+                            </button>
+                            <button onClick={() => {setTimer(0); setTimerActive(false);}} className="text-gray-700 hover:text-red-500 text-xs">✕</button>
+                          </div>
+                        )}
+                        
+                        <button onClick={() => setShowTempHUD(!showTempHUD)} className="px-3 py-1.5 rounded-full font-black text-[9px] uppercase border border-gray-700 text-gray-500 hover:text-[#FF4500] transition-all">
+                          Temp HUD
+                        </button>
+
                         {!isEditing && (
-                          <button onClick={toggleCookingMode} className={`px-4 py-2 rounded-full font-black text-[9px] uppercase transition-all border ${isCookingMode ? 'bg-[#FF4500] border-[#FF4500] text-white' : 'bg-transparent border-gray-700 text-gray-500 hover:text-white'}`}>
-                            {isCookingMode ? 'Exit Cooking Mode' : 'Enter Cooking Mode'}
+                          <button onClick={toggleCookingMode} className={`px-4 py-1.5 rounded-full font-black text-[9px] uppercase transition-all border ${isCookingMode ? 'bg-[#FF4500] border-[#FF4500] text-white' : 'bg-transparent border-gray-700 text-gray-500 hover:text-white'}`}>
+                            {isCookingMode ? 'Exit' : 'Cook'}
                           </button>
                         )}
+                        
                         {!isCookingMode && (
-                          <button onClick={() => setIsEditing(!isEditing)} className="px-4 py-2 rounded-full font-black text-[9px] uppercase border border-gray-700 text-gray-500 hover:border-white hover:text-white transition-all">
-                            {isEditing ? 'Cancel Edit' : 'Edit Recipe'}
+                          <button onClick={() => setIsEditing(!isEditing)} className="px-4 py-1.5 rounded-full font-black text-[9px] uppercase border border-gray-700 text-gray-500 hover:border-white hover:text-white transition-all">
+                            {isEditing ? 'Cancel' : 'Edit'}
                           </button>
                         )}
                         {!isCookingMode && !isEditing && (
-                          <button onClick={deleteRecipe} className="px-4 py-2 rounded-full font-black text-[9px] uppercase border border-red-900/50 text-red-900 hover:bg-red-900 hover:text-white transition-all">
+                          <button onClick={deleteRecipe} className="px-4 py-1.5 rounded-full font-black text-[9px] uppercase border border-red-900/50 text-red-900 hover:bg-red-900 hover:text-white transition-all">
                             Burn
                           </button>
                         )}
@@ -251,7 +328,7 @@ export default function Home() {
                           </section>
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-xs tracking-widest mb-4">The Process</h4>
-                            <div className="space-y-4">
+                            <div className="space-y-4 pb-20">
                               {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
                                 <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900 scale-[0.98]' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
                                   <p className="text-lg leading-relaxed">{step}</p>
@@ -262,7 +339,6 @@ export default function Home() {
                         </div>
                       ) : (
                         <div className="grid grid-cols-2 h-full gap-8 overflow-hidden">
-                          {/* Left Column */}
                           <div className="flex flex-col h-full border-r border-gray-800 pr-6 overflow-hidden">
                             <div className="flex justify-between items-center mb-6 flex-shrink-0">
                               <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest">Ingredients</h4>
@@ -278,12 +354,11 @@ export default function Home() {
                                   <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
                                     {checkedIngredients[i] && <span className="text-[8px] font-bold">✓</span>}
                                   </div>
-                                  <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through' : 'text-gray-300'}`}>{ing}</span>
+                                  <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ing}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
-                          {/* Right Column */}
                           <div className="flex flex-col h-full pl-2 overflow-hidden">
                             <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest mb-6 flex-shrink-0">Directions</h4>
                             <div className="flex-1 overflow-y-auto space-y-4 pr-2 text-gray-400 text-sm custom-scrollbar pb-10">
@@ -308,7 +383,6 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            /* SCRAPER / SCRATCH VIEW */
             <div className="max-w-xl mx-auto w-full overflow-y-auto custom-scrollbar flex-1 pb-10">
               {view === 'premade' && !showEditor && (
                 <div className="p-10 border border-gray-800 rounded-3xl bg-[#141414] space-y-6 text-center shadow-2xl mt-10">
