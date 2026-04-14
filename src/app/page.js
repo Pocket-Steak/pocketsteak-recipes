@@ -24,10 +24,12 @@ export default function Home() {
   const [checkedIngredients, setCheckedIngredients] = useState({});
   const [checkedDirections, setCheckedDirections] = useState({});
   const [isCookingMode, setIsCookingMode] = useState(false);
+  const [isEditing, setIsEditing] = useState(false);
 
-  // RESET LOGIC
+  // RESET & TOGGLE LOGIC
   const toggleCookingMode = () => {
     setIsCookingMode(!isCookingMode);
+    setIsEditing(false); 
     setCheckedIngredients({});
     setCheckedDirections({});
   };
@@ -88,7 +90,11 @@ export default function Home() {
   };
 
   const processButcherBlock = () => {
-    setRecipe({ ...recipe, ingredients: butcherInput });
+    if (isEditing) {
+      setSelectedRecipe({ ...selectedRecipe, ingredients: butcherInput });
+    } else {
+      setRecipe({ ...recipe, ingredients: butcherInput });
+    }
     setButcherInput('');
     setShowButcherBlock(false);
   };
@@ -108,7 +114,7 @@ export default function Home() {
       title: recipe.title, 
       ingredients: recipe.ingredients, 
       directions: recipe.directions,
-      description: recipe.ingredients.substring(0, 60) + "..."
+      description: (recipe.ingredients || "").substring(0, 60) + "..."
     }]);
     if (!error) {
       setView('home');
@@ -118,12 +124,43 @@ export default function Home() {
     }
   };
 
+  // --- NEW: UPDATE & DELETE ---
+  const updateRecipe = async () => {
+    const { error } = await supabase
+      .from('recipes')
+      .update({ 
+        title: selectedRecipe.title, 
+        ingredients: selectedRecipe.ingredients, 
+        directions: selectedRecipe.directions 
+      })
+      .eq('id', selectedRecipe.id);
+    
+    if (!error) {
+      setIsEditing(false);
+      fetchVault();
+      alert("Recipe updated in Vault.");
+    }
+  };
+
+  const deleteRecipe = async () => {
+    if (confirm("Are you sure you want to BURN this recipe? It cannot be recovered.")) {
+      const { error } = await supabase
+        .from('recipes')
+        .delete()
+        .eq('id', selectedRecipe.id);
+      
+      if (!error) {
+        setSelectedRecipe(null);
+        fetchVault();
+      }
+    }
+  };
+
   const filteredVault = vaultItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
     <main className="flex min-h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans">
       
-      {/* BRANDING HEADER - Updated for Logo + Text side-by-side */}
       <div className="my-10 text-center flex flex-col items-center">
         <div className="flex items-center gap-4">
           <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-16 w-auto" />
@@ -134,29 +171,16 @@ export default function Home() {
 
       {view === 'home' && (
         <div className="w-full max-w-2xl flex flex-col gap-4">
-          {/* TOP PRIMARY BUTTON */}
-          <button 
-            onClick={() => setView('vault')} 
-            className="w-full p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col items-center gap-2 hover:border-[#FF4500] hover:bg-[#222222] transition-all group shadow-xl"
-          >
+          <button onClick={() => setView('vault')} className="w-full p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col items-center gap-2 hover:border-[#FF4500] hover:bg-[#222222] transition-all group shadow-xl">
             <span className="text-[#FF4500] font-black text-3xl italic tracking-tighter uppercase group-hover:scale-105 transition-transform">Recipe Box</span>
             <span className="text-gray-500 text-xs uppercase font-bold tracking-widest">Access your secured recipes</span>
           </button>
-
-          {/* BOTTOM GRID */}
           <div className="grid grid-cols-2 gap-4">
-            <button 
-              onClick={() => { setView('scratch'); setShowEditor(true); }} 
-              className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-emerald-500/50 transition-all"
-            >
+            <button onClick={() => { setView('scratch'); setShowEditor(true); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-emerald-500/50 transition-all">
               <span className="text-white font-bold text-lg leading-none">From Scratch</span>
               <p className="text-gray-500 text-[11px] leading-tight">Type or paste ingredients and write your own directions.</p>
             </button>
-
-            <button 
-              onClick={() => { setView('premade'); setShowEditor(false); }} 
-              className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-[#FF4500]/50 transition-all"
-            >
+            <button onClick={() => { setView('premade'); setShowEditor(false); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-[#FF4500]/50 transition-all">
               <div className="flex flex-col">
                 <span className="text-white font-bold text-lg leading-none">Chef's Special</span>
                 <span className="text-[#FF4500] text-[9px] font-black uppercase tracking-tighter">Import from Web</span>
@@ -169,7 +193,7 @@ export default function Home() {
 
       {view !== 'home' && (
         <div className="w-full max-w-6xl">
-          <button onClick={() => { setView('home'); setShowEditor(false); setSelectedRecipe(null); setIsCookingMode(false); }} className="text-gray-500 hover:text-white mb-6 font-bold uppercase text-[10px] tracking-[0.2em] transition-colors">← Back to Command Center</button>
+          <button onClick={() => { setView('home'); setShowEditor(false); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} className="text-gray-500 hover:text-white mb-6 font-bold uppercase text-[10px] tracking-[0.2em] transition-colors">← Back to Command Center</button>
 
           {view === 'vault' ? (
             <div className="flex flex-col md:flex-row gap-6 h-[72vh]">
@@ -178,33 +202,62 @@ export default function Home() {
                 <input placeholder="Search files..." className="bg-[#141414] border border-gray-800 p-3 rounded-lg outline-none focus:border-[#FF4500] text-sm" onChange={(e) => setSearchQuery(e.target.value)} />
                 <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                   {filteredVault.map(item => (
-                    <div key={item.id} onClick={() => { setSelectedRecipe(item); clearChecks(); setIsCookingMode(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-transparent bg-[#141414] hover:bg-[#1A1A1A]'}`}>
+                    <div key={item.id} onClick={() => { setSelectedRecipe(item); clearChecks(); setIsCookingMode(false); setIsEditing(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-transparent bg-[#141414] hover:bg-[#1A1A1A]'}`}>
                       <h3 className="font-bold text-sm truncate uppercase tracking-tight">{item.title}</h3>
                     </div>
                   ))}
                 </div>
               </div>
 
-              {/* Card Area */}
+              {/* Main Card */}
               <div className="flex-1 bg-[#141414] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl">
                 {selectedRecipe ? (
                   <>
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A]">
-                      <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter">{selectedRecipe.title}</h2>
-                      <button onClick={toggleCookingMode} className={`px-4 py-2 rounded-full font-black text-[10px] uppercase transition-all border ${isCookingMode ? 'bg-[#FF4500] border-[#FF4500] text-white' : 'bg-transparent border-gray-700 text-gray-500 hover:text-white'}`}>
-                        {isCookingMode ? 'Exit Cooking Mode' : 'Enter Cooking Mode'}
-                      </button>
+                      <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
+                      <div className="flex gap-2">
+                        {!isEditing && (
+                          <button onClick={toggleCookingMode} className={`px-4 py-2 rounded-full font-black text-[10px] uppercase transition-all border ${isCookingMode ? 'bg-[#FF4500] border-[#FF4500] text-white' : 'bg-transparent border-gray-700 text-gray-500 hover:text-white'}`}>
+                            {isCookingMode ? 'Exit Cooking Mode' : 'Enter Cooking Mode'}
+                          </button>
+                        )}
+                        {!isCookingMode && (
+                          <button onClick={() => setIsEditing(!isEditing)} className="px-4 py-2 rounded-full font-black text-[10px] uppercase border border-gray-700 text-gray-500 hover:border-white hover:text-white transition-all">
+                            {isEditing ? 'Cancel Edit' : 'Edit Recipe'}
+                          </button>
+                        )}
+                        {!isCookingMode && !isEditing && (
+                          <button onClick={deleteRecipe} className="px-4 py-2 rounded-full font-black text-[10px] uppercase border border-red-900/50 text-red-900 hover:bg-red-900 hover:text-white transition-all">
+                            Burn
+                          </button>
+                        )}
+                      </div>
                     </div>
 
                     <div className="flex-1 overflow-hidden p-6">
-                      {isCookingMode ? (
+                      {isEditing ? (
+                        <div className="h-full flex flex-col gap-4 overflow-y-auto pr-2 custom-scrollbar">
+                          <input value={selectedRecipe.title} onChange={(e) => setSelectedRecipe({...selectedRecipe, title: e.target.value})} className="bg-transparent border-b border-gray-800 p-2 text-xl font-bold outline-none focus:border-[#FF4500]" />
+                          <div className="grid grid-cols-2 gap-4 flex-1">
+                            <div className="flex flex-col gap-2">
+                              <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Ingredients</label>
+                              <textarea value={selectedRecipe.ingredients} onChange={(e) => setSelectedRecipe({...selectedRecipe, ingredients: e.target.value})} className="flex-1 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
+                            </div>
+                            <div className="flex flex-col gap-2">
+                              <label className="text-[9px] font-black text-gray-600 uppercase tracking-widest">Directions</label>
+                              <textarea value={selectedRecipe.directions} onChange={(e) => setSelectedRecipe({...selectedRecipe, directions: e.target.value})} className="flex-1 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
+                            </div>
+                          </div>
+                          <button onClick={updateRecipe} className="w-full p-4 bg-emerald-700 text-white font-black uppercase tracking-widest rounded-xl hover:bg-emerald-600 transition-all">Update Secured File</button>
+                        </div>
+                      ) : isCookingMode ? (
                         <div className="h-full overflow-y-auto space-y-12 pr-4 custom-scrollbar">
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-xs tracking-widest mb-4">Prep Checklist</h4>
                             <div className="space-y-2">
                               {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})} className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer border transition-all ${checkedIngredients[i] ? 'bg-black opacity-10 border-transparent' : 'bg-[#1A1A1A] border-gray-800'}`}>
-                                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center ${checkedIngredients[i] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>
+                                <div key={i} onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})} className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer border transition-all ${checkedIngredients[i] ? 'bg-black opacity-10 border-transparent scale-[0.98]' : 'bg-[#1A1A1A] border-gray-800'}`}>
+                                  <div className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all ${checkedIngredients[i] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>
                                     {checkedIngredients[i] && '✓'}
                                   </div>
                                   <span className="text-lg">{ing}</span>
@@ -216,7 +269,7 @@ export default function Home() {
                             <h4 className="text-[#FF4500] font-black uppercase text-xs tracking-widest mb-4">The Process</h4>
                             <div className="space-y-4">
                               {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
-                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
+                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900 scale-[0.98]' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
                                   <p className="text-lg leading-relaxed">{step}</p>
                                 </div>
                               ))}
@@ -269,6 +322,7 @@ export default function Home() {
               </div>
             </div>
           ) : (
+            /* INTAKE FORM (Scratch / Premade) */
             <div className="max-w-xl mx-auto space-y-6">
               {view === 'premade' && !showEditor && (
                 <div className="p-10 border border-gray-800 rounded-3xl bg-[#141414] space-y-6 text-center shadow-2xl">
@@ -308,7 +362,7 @@ export default function Home() {
                         <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} className="w-full h-64 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 mt-1 outline-none focus:border-[#FF4500] text-xs leading-relaxed" />
                       </div>
                     </div>
-                    <button onClick={saveRecipe} className="w-full p-4 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest transition-all">Secure to Vault</button>
+                    <button onClick={saveRecipe} className="w-full p-4 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-lg">Secure to Vault</button>
                   </div>
                 </div>
               )}
