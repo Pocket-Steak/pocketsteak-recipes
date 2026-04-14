@@ -6,16 +6,19 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // 1. Handle the browser "permission" request (OPTIONS)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const { url } = await req.json()
+    
+    // 2. Fetch the recipe website
     const response = await fetch(url)
     const html = await response.text()
 
-    // Look for the "Recipe" data hidden in the site's code
+    // 3. Look for the "Recipe" data hidden in the site's code
     const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)
     let recipeData = null
 
@@ -24,6 +27,8 @@ serve(async (req) => {
         try {
           const content = script.replace(/<script type="application\/ld\+json">|<\/script>/g, '')
           const parsed = JSON.parse(content)
+          
+          // Improved search to find the Recipe object in the mess
           const found = Array.isArray(parsed) 
             ? parsed.find(i => i['@type'] === 'Recipe')
             : (parsed['@graph'] ? parsed['@graph'].find(i => i['@type'] === 'Recipe') : (parsed['@type'] === 'Recipe' ? parsed : null))
@@ -36,18 +41,29 @@ serve(async (req) => {
       }
     }
 
-    if (!recipeData) throw new Error('No recipe data found on this page.')
+    if (!recipeData) throw new Error('The Pit couldn\'t find recipe data on this page.')
 
-    // Format for PocketSteak
+    // 4. Clean up ingredients and instructions for PocketSteak
+    const formattedIngredients = Array.isArray(recipeData.recipeIngredient) 
+      ? recipeData.recipeIngredient.join('\n') 
+      : recipeData.recipeIngredient;
+
+    // Handle complex instructions (sometimes they are objects, sometimes strings)
+    const formattedDirections = Array.isArray(recipeData.recipeInstructions) 
+      ? recipeData.recipeInstructions.map((i: any) => i.text || i).join('\n') 
+      : recipeData.recipeInstructions;
+
+    // 5. Send the clean data back to the website
     return new Response(
       JSON.stringify({
-        title: recipeData.name,
-        ingredients: Array.isArray(recipeData.recipeIngredient) ? recipeData.recipeIngredient.join('\n') : recipeData.recipeIngredient,
-        directions: Array.isArray(recipeData.recipeInstructions) 
-          ? recipeData.recipeInstructions.map((i: any) => i.text || i).join('\n') 
-          : recipeData.recipeInstructions
+        title: recipeData.name || "Untitled Steak",
+        ingredients: formattedIngredients || "",
+        directions: formattedDirections || ""
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
     )
 
   } catch (error) {
