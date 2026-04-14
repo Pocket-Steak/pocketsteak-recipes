@@ -25,7 +25,7 @@ export default function Home() {
   const [checkedDirections, setCheckedDirections] = useState({});
   const [isCookingMode, setIsCookingMode] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [showTempHUD, setShowTempHUD] = useState(false);
+  const [showRefHUD, setShowRefHUD] = useState(false);
 
   // --- DUAL TIMER LOGIC ---
   const [stopwatch, setStopwatch] = useState(0);
@@ -118,12 +118,12 @@ export default function Home() {
     <main className="flex h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans overflow-hidden">
       
       {/* BRANDING */}
-      <div className="mb-6 text-center flex flex-col items-center flex-shrink-0">
+      <div className="mb-4 text-center flex flex-col items-center flex-shrink-0">
         <div className="flex items-center gap-4">
-          <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-12 w-auto" />
-          <h1 className="text-4xl font-black tracking-tighter text-[#FF4500] italic uppercase leading-none">PocketSteak</h1>
+          <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-10 w-auto" />
+          <h1 className="text-3xl font-black tracking-tighter text-[#FF4500] italic uppercase leading-none">PocketSteak</h1>
         </div>
-        <p className="text-gray-600 uppercase tracking-[0.4em] text-[8px] font-black italic mt-1">Pitmaster Intelligence</p>
+        <p className="text-gray-600 uppercase tracking-[0.4em] text-[7px] font-black italic mt-1">Pitmaster Intelligence</p>
       </div>
 
       {view === 'home' && (
@@ -150,11 +150,30 @@ export default function Home() {
 
       {view !== 'home' && (
         <div className="w-full max-w-6xl flex flex-col flex-1 overflow-hidden">
-          {/* TACTICAL PILL BACK BUTTON */}
-          <button onClick={() => { setView('home'); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} className="group mb-4 flex items-center gap-3 px-6 py-3 border border-gray-800 rounded-full bg-[#141414] hover:border-[#FF4500] transition-all w-fit shadow-lg">
-            <span className="text-gray-500 group-hover:text-[#FF4500] text-sm font-bold">←</span>
-            <span className="text-gray-400 group-hover:text-white font-black uppercase text-[10px] tracking-[0.2em]">Command Center</span>
-          </button>
+          
+          {/* TOP TACTICAL ROW: BACK BUTTON + TIMER */}
+          <div className="flex justify-between items-center mb-4 flex-shrink-0">
+            <button onClick={() => { setView('home'); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} className="group flex items-center gap-3 px-6 py-2 border border-gray-800 rounded-full bg-[#141414] hover:border-[#FF4500] transition-all shadow-lg">
+              <span className="text-gray-500 group-hover:text-[#FF4500] text-sm font-bold">←</span>
+              <span className="text-gray-400 group-hover:text-white font-black uppercase text-[9px] tracking-[0.2em]">Command Center</span>
+            </button>
+
+            {isCookingMode && (
+              <div className="flex items-stretch bg-black border-2 border-gray-800 rounded-xl overflow-hidden shadow-2xl h-14">
+                <div className="px-6 border-r border-gray-800 bg-[#0A0A0A] flex flex-col items-center justify-center min-w-[120px]">
+                  <span className="text-[7px] text-gray-500 font-black uppercase tracking-widest">Mission</span>
+                  <span className="text-white font-mono text-xl font-bold">{formatTime(stopwatch)}</span>
+                  <button onClick={() => setSwActive(!swActive)} className={`text-[8px] font-black ${swActive ? 'text-amber-500' : 'text-emerald-500'}`}>{swActive ? "PAUSE" : "START"}</button>
+                </div>
+                <div className="px-6 bg-[#0F0F0F] flex flex-col items-center justify-center min-w-[120px]">
+                  <span className="text-[7px] text-gray-500 font-black uppercase tracking-widest">Countdown</span>
+                  <span onClick={() => !cdActive && setCountdown(c => c + 60)} className={`font-mono text-xl font-bold cursor-pointer ${countdown > 0 ? 'text-[#FF4500]' : 'text-gray-700'}`}>{formatTime(countdown)}</span>
+                  <button onClick={() => countdown > 0 && setCdActive(!cdActive)} className={`text-[8px] font-black ${cdActive ? 'text-amber-500' : 'text-emerald-500'}`}>{cdActive ? "STOP" : "GO"}</button>
+                </div>
+                <button onClick={() => {setStopwatch(0); setSwActive(false); setCountdown(0); setCdActive(false);}} className="px-4 bg-gray-900 text-gray-600 hover:text-red-500 font-black">✕</button>
+              </div>
+            )}
+          </div>
 
           {view === 'vault' ? (
             <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
@@ -170,41 +189,55 @@ export default function Home() {
               </div>
 
               <div className="flex-1 bg-[#141414] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl relative">
-                {selectedRecipe && (
+                
+                {/* REFERENCE HUD OVERLAY */}
+                {showRefHUD && (
+                  <div className="absolute top-2 right-6 z-50 bg-black/98 border border-[#FF4500]/50 p-6 rounded-2xl shadow-2xl backdrop-blur-md w-[400px]">
+                    <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+                      <span className="text-[#FF4500] font-black uppercase text-[10px] tracking-widest">Pitmaster Ref Intel</span>
+                      <button onClick={() => setShowRefHUD(false)} className="text-gray-600 hover:text-white">✕</button>
+                    </div>
+                    <div className="grid grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Internal Temps</p>
+                        <div className="text-[10px] font-mono space-y-1">
+                          <div className="flex justify-between"><span>Rare</span><span className="text-[#FF4500]">125°F</span></div>
+                          <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#FF4500]">135°F</span></div>
+                          <div className="flex justify-between"><span>Medium</span><span className="text-[#FF4500]">145°F</span></div>
+                          <div className="flex justify-between"><span>Chicken</span><span className="text-[#FF4500]">165°F</span></div>
+                          <div className="flex justify-between"><span>Pork</span><span className="text-[#FF4500]">145°F+</span></div>
+                        </div>
+                      </div>
+                      <div className="space-y-4">
+                        <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Conversions</p>
+                        <div className="text-[10px] font-mono space-y-1">
+                          <div className="flex justify-between"><span>1 Cup</span><span>8 oz</span></div>
+                          <div className="flex justify-between"><span>1/2 Cup</span><span>4 oz</span></div>
+                          <div className="flex justify-between"><span>1 Tbsp</span><span>3 tsp</span></div>
+                          <div className="flex justify-between"><span>1/4 Cup</span><span>4 Tbsp</span></div>
+                          <div className="flex justify-between"><span>Pint</span><span>16 oz</span></div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {selectedRecipe ? (
                   <>
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A] flex-shrink-0">
-                      <h2 className="text-xl font-black text-[#FF4500] uppercase italic truncate max-w-[25%]">{selectedRecipe.title}</h2>
+                      <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
                       
-                      {/* GIANT IPAD-READY TIMER CONSOLE */}
-                      <div className="flex items-center gap-6">
-                        {isCookingMode && (
-                          <div className="flex items-stretch bg-black border-2 border-gray-800 rounded-xl overflow-hidden shadow-2xl scale-110">
-                            <div className="px-6 py-2 border-r border-gray-800 bg-[#0A0A0A] flex flex-col items-center justify-center min-w-[100px]">
-                              <span className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Mission</span>
-                              <span className="text-white font-mono text-xl font-bold">{formatTime(stopwatch)}</span>
-                              <button onClick={() => setSwActive(!swActive)} className={`mt-1 text-[10px] font-black ${swActive ? 'text-amber-500' : 'text-emerald-500'}`}>{swActive ? "PAUSE" : "START"}</button>
-                            </div>
-                            <div className="px-6 py-2 bg-[#0F0F0F] flex flex-col items-center justify-center min-w-[100px]">
-                              <span className="text-[8px] text-gray-500 font-black uppercase tracking-widest mb-1">Target</span>
-                              <span onClick={() => !cdActive && setCountdown(c => c + 60)} className={`font-mono text-xl font-bold cursor-pointer ${countdown > 0 ? 'text-[#FF4500]' : 'text-gray-700'}`}>{formatTime(countdown)}</span>
-                              <button onClick={() => countdown > 0 && setCdActive(!cdActive)} className={`mt-1 text-[10px] font-black ${cdActive ? 'text-amber-500' : 'text-emerald-500'}`}>{cdActive ? "STOP" : "GO"}</button>
-                            </div>
-                            <button onClick={() => {setStopwatch(0); setSwActive(false); setCountdown(0); setCdActive(false);}} className="px-4 bg-gray-900 text-gray-600 hover:text-red-500 font-black">✕</button>
-                          </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => setShowRefHUD(!showRefHUD)} className="px-4 py-1.5 rounded-full font-black text-[9px] border border-gray-700 text-gray-500 hover:text-[#FF4500]">Reference</button>
+                        {!isEditing && (
+                          <button onClick={() => setIsCookingMode(!isCookingMode)} className={`px-6 py-1.5 rounded-full font-black text-[9px] border ${isCookingMode ? 'bg-[#FF4500] border-[#FF4500] text-white' : 'border-gray-700 text-gray-500 hover:text-white'}`}>{isCookingMode ? 'Exit' : 'Cook'}</button>
                         )}
-
-                        <div className="flex gap-2">
-                          <button onClick={() => setShowTempHUD(!showTempHUD)} className="px-4 py-2 rounded-full font-black text-[10px] border border-gray-700 text-gray-500 hover:text-[#FF4500]">Temps</button>
-                          {!isEditing && (
-                            <button onClick={() => setIsCookingMode(!isCookingMode)} className={`px-6 py-2 rounded-full font-black text-[10px] border ${isCookingMode ? 'bg-[#FF4500] border-[#FF4500] text-white' : 'border-gray-700 text-gray-500 hover:text-white'}`}>{isCookingMode ? 'Exit' : 'Cook'}</button>
-                          )}
-                          {!isCookingMode && (
-                            <button onClick={() => setIsEditing(!isEditing)} className="px-4 py-2 rounded-full font-black text-[10px] border border-gray-700 text-gray-500 hover:text-white">{isEditing ? 'Cancel' : 'Edit'}</button>
-                          )}
-                          {!isCookingMode && !isEditing && (
-                            <button onClick={deleteRecipe} className="px-4 py-2 rounded-full font-black text-[10px] border border-red-900/50 text-red-900 hover:bg-red-900 hover:text-white">Burn</button>
-                          )}
-                        </div>
+                        {!isCookingMode && (
+                          <button onClick={() => setIsEditing(!isEditing)} className="px-4 py-1.5 rounded-full font-black text-[9px] border border-gray-700 text-gray-500 hover:text-white">{isEditing ? 'Cancel' : 'Edit'}</button>
+                        )}
+                        {!isCookingMode && !isEditing && (
+                          <button onClick={deleteRecipe} className="px-4 py-1.5 rounded-full font-black text-[9px] border border-red-900/50 text-red-900 hover:bg-red-900 hover:text-white">Burn</button>
+                        )}
                       </div>
                     </div>
 
@@ -224,19 +257,19 @@ export default function Home() {
                             <h4 className="text-[#FF4500] font-black uppercase text-xs mb-4">Prep Checklist</h4>
                             <div className="space-y-3">
                               {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})} className={`flex items-center gap-6 p-6 rounded-2xl border transition-all ${checkedIngredients[i] ? 'bg-black opacity-10 border-transparent' : 'bg-[#1A1A1A] border-gray-800'}`}>
-                                  <div className={`w-8 h-8 rounded-lg border-2 flex items-center justify-center ${checkedIngredients[i] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>{checkedIngredients[i] && '✓'}</div>
-                                  <span className="text-2xl font-medium">{ing}</span>
+                                <div key={i} onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})} className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer border transition-all ${checkedIngredients[i] ? 'bg-black opacity-10 border-transparent' : 'bg-[#1A1A1A] border-gray-800'}`}>
+                                  <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${checkedIngredients[i] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>{checkedIngredients[i] && '✓'}</div>
+                                  <span className="text-lg">{ing}</span>
                                 </div>
                               ))}
                             </div>
                           </section>
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-xs mb-4">The Process</h4>
-                            <div className="space-y-6 pb-20">
+                            <div className="space-y-4 pb-20">
                               {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
-                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-8 rounded-2xl border-l-8 transition-all ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
-                                  <p className="text-2xl leading-relaxed">{step}</p>
+                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
+                                  <p className="text-lg leading-relaxed">{step}</p>
                                 </div>
                               ))}
                             </div>
@@ -266,7 +299,6 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            /* FROM SCRATCH / PREMADE FORMS */
             <div className="max-w-xl mx-auto w-full flex-1 overflow-y-auto custom-scrollbar pb-10">
               {view === 'premade' && !showEditor && (
                 <div className="p-10 border border-gray-800 rounded-3xl bg-[#141414] text-center mt-10 shadow-2xl">
@@ -294,7 +326,7 @@ export default function Home() {
 
                   <input value={recipe.title} onChange={(e) => setRecipe({...recipe, title: e.target.value})} placeholder="RECIPE NAME" className="w-full bg-transparent border-b border-gray-800 text-3xl font-black p-2 outline-none focus:border-[#FF4500] uppercase italic" />
                   <div className="grid grid-cols-2 gap-4">
-                    <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS (One per line)" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
+                    <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                     <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                   </div>
                   <button onClick={saveRecipe} className="w-full p-4 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest transition-all">Secure to Vault</button>
