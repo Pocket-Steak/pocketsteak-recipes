@@ -17,7 +17,6 @@ export default function Home() {
   const [showEditor, setShowEditor] = useState(false);
   const [showButcherBlock, setShowButcherBlock] = useState(false);
   
-  // Vault States
   const [vaultItems, setVaultItems] = useState([]);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -27,7 +26,6 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(false);
   const [showRefHUD, setShowRefHUD] = useState(false);
 
-  // --- DUAL TIMER LOGIC ---
   const [stopwatch, setStopwatch] = useState(0);
   const [swActive, setSwActive] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -46,7 +44,7 @@ export default function Home() {
     } else if (countdown === 0 && cdActive) {
       setCdActive(false);
       const alarm = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-      alarm.play().catch(() => console.log("Sound blocked by Safari."));
+      alarm.play().catch(() => console.log("Sound blocked."));
     }
     return () => clearInterval(int);
   }, [cdActive, countdown]);
@@ -117,7 +115,6 @@ export default function Home() {
   return (
     <main className="flex h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans overflow-hidden">
       
-      {/* BRANDING */}
       <div className="mb-4 text-center flex flex-col items-center flex-shrink-0">
         <div className="flex items-center gap-4">
           <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-10 w-auto" />
@@ -151,7 +148,6 @@ export default function Home() {
       {view !== 'home' && (
         <div className="w-full max-w-6xl flex flex-col flex-1 overflow-hidden">
           
-          {/* TOP TACTICAL ROW: BACK BUTTON + TIMER */}
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
             <button onClick={() => { setView('home'); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} className="group flex items-center gap-3 px-6 py-2 border border-gray-800 rounded-full bg-[#141414] hover:border-[#FF4500] transition-all shadow-lg">
               <span className="text-gray-500 group-hover:text-[#FF4500] text-sm font-bold">←</span>
@@ -189,8 +185,6 @@ export default function Home() {
               </div>
 
               <div className="flex-1 bg-[#141414] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl relative">
-                
-                {/* REFERENCE HUD OVERLAY */}
                 {showRefHUD && (
                   <div className="absolute top-2 right-6 z-50 bg-black/98 border border-[#FF4500]/50 p-6 rounded-2xl shadow-2xl backdrop-blur-md w-[400px]">
                     <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
@@ -198,25 +192,19 @@ export default function Home() {
                       <button onClick={() => setShowRefHUD(false)} className="text-gray-600 hover:text-white">✕</button>
                     </div>
                     <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-4">
+                      <div className="space-y-4 text-[10px] font-mono">
                         <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Internal Temps</p>
-                        <div className="text-[10px] font-mono space-y-1">
-                          <div className="flex justify-between"><span>Rare</span><span className="text-[#FF4500]">125°F</span></div>
-                          <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#FF4500]">135°F</span></div>
-                          <div className="flex justify-between"><span>Medium</span><span className="text-[#FF4500]">145°F</span></div>
-                          <div className="flex justify-between"><span>Chicken</span><span className="text-[#FF4500]">165°F</span></div>
-                          <div className="flex justify-between"><span>Pork</span><span className="text-[#FF4500]">145°F+</span></div>
-                        </div>
+                        <div className="flex justify-between"><span>Rare</span><span className="text-[#FF4500]">125°F</span></div>
+                        <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#FF4500]">135°F</span></div>
+                        <div className="flex justify-between"><span>Medium</span><span className="text-[#FF4500]">145°F</span></div>
+                        <div className="flex justify-between"><span>Chicken</span><span className="text-[#FF4500]">165°F</span></div>
                       </div>
-                      <div className="space-y-4">
+                      <div className="space-y-4 text-[10px] font-mono">
                         <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Conversions</p>
-                        <div className="text-[10px] font-mono space-y-1">
-                          <div className="flex justify-between"><span>1 Cup</span><span>8 oz</span></div>
-                          <div className="flex justify-between"><span>1/2 Cup</span><span>4 oz</span></div>
-                          <div className="flex justify-between"><span>1 Tbsp</span><span>3 tsp</span></div>
-                          <div className="flex justify-between"><span>1/4 Cup</span><span>4 Tbsp</span></div>
-                          <div className="flex justify-between"><span>Pint</span><span>16 oz</span></div>
-                        </div>
+                        <div className="flex justify-between"><span>1 Cup</span><span>8 oz</span></div>
+                        <div className="flex justify-between"><span>1/2 Cup</span><span>4 oz</span></div>
+                        <div className="flex justify-between"><span>1 Tbsp</span><span>3 tsp</span></div>
+                        <div className="flex justify-between"><span>Pint</span><span>16 oz</span></div>
                       </div>
                     </div>
                   </div>
@@ -226,7 +214,6 @@ export default function Home() {
                   <>
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A] flex-shrink-0">
                       <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
-                      
                       <div className="flex gap-2">
                         <button onClick={() => setShowRefHUD(!showRefHUD)} className="px-4 py-1.5 rounded-full font-black text-[9px] border border-gray-700 text-gray-500 hover:text-[#FF4500]">Reference</button>
                         {!isEditing && (
@@ -295,6 +282,8 @@ export default function Home() {
                       )}
                     </div>
                   </>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-gray-800 uppercase font-black text-[10px] tracking-[0.4em] animate-pulse">Select Intel from sidebar</div>
                 )}
               </div>
             </div>
@@ -316,14 +305,12 @@ export default function Home() {
                       {showButcherBlock ? "- Hide Butcher" : "+ Butcher Block"}
                     </button>
                   </div>
-
                   {showButcherBlock && (
                     <div className="p-4 bg-[#0D0D0D] border border-gray-800 rounded-xl space-y-4">
                       <textarea value={butcherInput} onChange={(e) => setButcherInput(e.target.value)} className="w-full h-32 bg-transparent outline-none text-xs text-gray-500" placeholder="Dump raw text here..." />
                       <button onClick={processButcherBlock} className="w-full p-2 bg-white text-black font-black text-[9px] rounded uppercase">Butcher & Transfer</button>
                     </div>
                   )}
-
                   <input value={recipe.title} onChange={(e) => setRecipe({...recipe, title: e.target.value})} placeholder="RECIPE NAME" className="w-full bg-transparent border-b border-gray-800 text-3xl font-black p-2 outline-none focus:border-[#FF4500] uppercase italic" />
                   <div className="grid grid-cols-2 gap-4">
                     <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
