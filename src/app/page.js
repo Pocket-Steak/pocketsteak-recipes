@@ -123,10 +123,13 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans">
       
-      {/* BRANDING HEADER */}
+      {/* BRANDING HEADER - Updated for Logo + Text side-by-side */}
       <div className="my-10 text-center flex flex-col items-center">
-        <img src="/assets/pocket_steak_logo.png" alt="PocketSteak Logo" className="h-24 w-auto mb-2" />
-        <p className="text-gray-600 uppercase tracking-[0.4em] text-[10px] font-black italic">Pitmaster Intelligence</p>
+        <div className="flex items-center gap-4">
+          <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-16 w-auto" />
+          <h1 className="text-5xl font-black tracking-tighter text-[#FF4500] italic uppercase leading-none">PocketSteak</h1>
+        </div>
+        <p className="text-gray-600 uppercase tracking-[0.4em] text-[10px] font-black italic mt-2">Pitmaster Intelligence</p>
       </div>
 
       {view === 'home' && (
