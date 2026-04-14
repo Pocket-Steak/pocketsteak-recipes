@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -17,6 +17,7 @@ export default function Home() {
   const [showEditor, setShowEditor] = useState(false);
   const [showButcherBlock, setShowButcherBlock] = useState(false);
   
+  // Vault States
   const [vaultItems, setVaultItems] = useState([]);
   const [selectedRecipe, setSelectedRecipe] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
@@ -26,6 +27,7 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(false);
   const [showRefHUD, setShowRefHUD] = useState(false);
 
+  // --- DUAL TIMER LOGIC ---
   const [stopwatch, setStopwatch] = useState(0);
   const [swActive, setSwActive] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -44,7 +46,7 @@ export default function Home() {
     } else if (countdown === 0 && cdActive) {
       setCdActive(false);
       const alarm = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-      alarm.play().catch(() => console.log("Sound blocked."));
+      alarm.play().catch(() => console.log("Sound blocked by Safari."));
     }
     return () => clearInterval(int);
   }, [cdActive, countdown]);
@@ -112,34 +114,43 @@ export default function Home() {
     }
   };
 
+  const filteredVault = vaultItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
+
   return (
     <main className="flex h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans overflow-hidden">
       
+      {/* 1. BRANDING HEADER (Main title stays Orange, tagline is now Orange) */}
       <div className="mb-4 text-center flex flex-col items-center flex-shrink-0">
         <div className="flex items-center gap-4">
           <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-10 w-auto" />
           <h1 className="text-3xl font-black tracking-tighter text-[#FF4500] italic uppercase leading-none">PocketSteak</h1>
         </div>
-        <p className="text-gray-600 uppercase tracking-[0.4em] text-[7px] font-black italic mt-1">Pitmaster Intelligence</p>
+        <p className="text-[#FF4500] uppercase tracking-[0.4em] text-[7px] font-black italic mt-1">Pitmaster Intelligence</p>
       </div>
 
       {view === 'home' && (
         <div className="w-full max-w-2xl flex flex-col gap-4 mt-10">
-          <button onClick={() => setView('vault')} className="w-full p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col items-center gap-2 hover:border-[#FF4500] transition-all group shadow-xl">
-            <span className="text-[#FF4500] font-black text-3xl italic tracking-tighter uppercase group-hover:scale-105 transition-transform">Recipe Box</span>
-            <span className="text-gray-500 text-xs uppercase font-bold tracking-widest">Access your secured recipes</span>
+          
+          {/* RECIPE BOX (Title White, NEW Sub-copy Orange) */}
+          <button onClick={() => setView('vault')} className="w-full p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col items-center gap-2 hover:border-[#FF4500] hover:bg-[#222222] transition-all group shadow-xl">
+            <span className="text-[#FFFFFF] font-black text-3xl italic tracking-tighter uppercase group-hover:scale-105 transition-transform">Recipe Box</span>
+            <span className="text-[#FF4500] text-xs uppercase font-bold tracking-widest">Just like grandma’s recipe book, but with tech</span>
           </button>
+          
           <div className="grid grid-cols-2 gap-4">
+            {/* FROM SCRATCH (Title White, Sub-copy Orange) */}
             <button onClick={() => { setView('scratch'); setShowEditor(true); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-emerald-500 transition-all">
-              <span className="text-white font-bold text-lg leading-none">From Scratch</span>
-              <p className="text-gray-500 text-[11px] leading-tight">Type or paste ingredients and write your own directions.</p>
+              <span className="text-[#FFFFFF] font-bold text-lg leading-none">From Scratch</span>
+              <p className="text-[#FF4500] text-[11px] leading-tight">Type or paste ingredients and write your own directions.</p>
             </button>
+            
+            {/* CHEF'S SPECIAL (Title White, Labels Orange) */}
             <button onClick={() => { setView('premade'); setShowEditor(false); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-[#FF4500] transition-all">
               <div className="flex flex-col">
-                <span className="text-white font-bold text-lg leading-none">Chef's Special</span>
+                <span className="text-[#FFFFFF] font-bold text-lg leading-none">Chef's Special</span>
                 <span className="text-[#FF4500] text-[9px] font-black uppercase tracking-tighter">Import from Web</span>
               </div>
-              <p className="text-gray-500 text-[11px] leading-tight">Paste a recipe link and let the chef prepare it for you.</p>
+              <p className="text-[#FF4500] text-[11px] leading-tight">Paste a recipe link and let the chef prepare it for you.</p>
             </button>
           </div>
         </div>
@@ -148,7 +159,9 @@ export default function Home() {
       {view !== 'home' && (
         <div className="w-full max-w-6xl flex flex-col flex-1 overflow-hidden">
           
+          {/* TOP TACTICAL ROW: BACK BUTTON + TIMER */}
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
+            {/* TACTICAL BACK BUTTON (Now using the Pill Design) */}
             <button onClick={() => { setView('home'); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} className="group flex items-center gap-3 px-6 py-2 border border-gray-800 rounded-full bg-[#141414] hover:border-[#FF4500] transition-all shadow-lg">
               <span className="text-gray-500 group-hover:text-[#FF4500] text-sm font-bold">←</span>
               <span className="text-gray-400 group-hover:text-white font-black uppercase text-[9px] tracking-[0.2em]">Command Center</span>
@@ -185,6 +198,8 @@ export default function Home() {
               </div>
 
               <div className="flex-1 bg-[#141414] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl relative">
+                
+                {/* REFERENCE HUD OVERLAY (Int Temps + OZ to Cups) */}
                 {showRefHUD && (
                   <div className="absolute top-2 right-6 z-50 bg-black/98 border border-[#FF4500]/50 p-6 rounded-2xl shadow-2xl backdrop-blur-md w-[400px]">
                     <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
@@ -198,11 +213,13 @@ export default function Home() {
                         <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#FF4500]">135°F</span></div>
                         <div className="flex justify-between"><span>Medium</span><span className="text-[#FF4500]">145°F</span></div>
                         <div className="flex justify-between"><span>Chicken</span><span className="text-[#FF4500]">165°F</span></div>
+                        <div className="flex justify-between"><span>Pork</span><span className="text-[#FF4500]">145°F+</span></div>
                       </div>
                       <div className="space-y-4 text-[10px] font-mono">
                         <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Conversions</p>
                         <div className="flex justify-between"><span>1 Cup</span><span>8 oz</span></div>
                         <div className="flex justify-between"><span>1/2 Cup</span><span>4 oz</span></div>
+                        <div className="flex justify-between"><span>1/4 Cup</span><span>2 oz</span></div>
                         <div className="flex justify-between"><span>1 Tbsp</span><span>3 tsp</span></div>
                         <div className="flex justify-between"><span>Pint</span><span>16 oz</span></div>
                       </div>
@@ -214,6 +231,7 @@ export default function Home() {
                   <>
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A] flex-shrink-0">
                       <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
+                      
                       <div className="flex gap-2">
                         <button onClick={() => setShowRefHUD(!showRefHUD)} className="px-4 py-1.5 rounded-full font-black text-[9px] border border-gray-700 text-gray-500 hover:text-[#FF4500]">Reference</button>
                         {!isEditing && (
@@ -239,7 +257,7 @@ export default function Home() {
                           <button onClick={updateRecipe} className="w-full p-4 bg-emerald-700 text-white font-black uppercase tracking-widest rounded-xl">Update File</button>
                         </div>
                       ) : isCookingMode ? (
-                        <div className="absolute inset-6 overflow-y-auto custom-scrollbar space-y-12">
+                        <div className="absolute inset-6 overflow-y-auto custom-scrollbar space-y-12 pb-20">
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-xs mb-4">Prep Checklist</h4>
                             <div className="space-y-3">
@@ -253,9 +271,9 @@ export default function Home() {
                           </section>
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-xs mb-4">The Process</h4>
-                            <div className="space-y-4 pb-20">
+                            <div className="space-y-4">
                               {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
-                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
+                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
                                   <p className="text-lg leading-relaxed">{step}</p>
                                 </div>
                               ))}
@@ -282,8 +300,6 @@ export default function Home() {
                       )}
                     </div>
                   </>
-                ) : (
-                  <div className="h-full flex items-center justify-center text-gray-800 uppercase font-black text-[10px] tracking-[0.4em] animate-pulse">Select Intel from sidebar</div>
                 )}
               </div>
             </div>
