@@ -46,7 +46,7 @@ export default function Home() {
     } else if (countdown === 0 && cdActive) {
       setCdActive(false);
       const alarm = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-      alarm.play().catch(() => console.log("Sound blocked by Safari."));
+      alarm.play().catch(() => console.log("Sound blocked."));
     }
     return () => clearInterval(int);
   }, [cdActive, countdown]);
@@ -114,6 +114,21 @@ export default function Home() {
     }
   };
 
+  const copyCheckedItems = () => {
+    const list = selectedRecipe.ingredients.split('\n')
+      .filter((_, index) => checkedIngredients[index])
+      .join('\n');
+    if (list) {
+      navigator.clipboard.writeText(list);
+      alert("Checked items copied to clipboard.");
+    }
+  };
+
+  const clearChecks = () => {
+    setCheckedIngredients({});
+    setCheckedDirections({});
+  };
+
   const filteredVault = vaultItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
@@ -143,7 +158,6 @@ export default function Home() {
               </div>
               <p className="text-[#FF4500] text-[11px] leading-tight">Type or paste ingredients and write your own directions.</p>
             </button>
-
             <button onClick={() => { setView('premade'); setShowEditor(false); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-[#FF4500] transition-all">
               <div className="flex flex-col">
                 <span className="text-[#FFFFFF] font-bold text-lg leading-none">Chef's Special</span>
@@ -275,10 +289,22 @@ export default function Home() {
                       ) : (
                         <div className="grid grid-cols-2 h-full gap-8 overflow-hidden">
                           <div className="flex flex-col h-full border-r border-gray-800 pr-6 overflow-hidden">
-                            <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Ingredients</h4>
+                            <div className="flex justify-between items-center mb-6 flex-shrink-0">
+                                <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest">Ingredients</h4>
+                                <div className="flex gap-2 text-[10px] font-black uppercase">
+                                    <button onClick={copyCheckedItems} className="text-[#FF4500] hover:underline">Copy</button>
+                                    <span className="text-gray-800">/</span>
+                                    <button onClick={clearChecks} className="text-gray-500 hover:text-white">Clear</button>
+                                </div>
+                            </div>
                             <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
                               {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} className="flex items-start gap-3 text-sm text-gray-300"><span>•</span>{ing}</div>
+                                <div key={i} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
+                                    <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
+                                        {checkedIngredients[i] && <span className="text-[8px] font-bold">✓</span>}
+                                    </div>
+                                    <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ing}</span>
+                                </div>
                               ))}
                             </div>
                           </div>
