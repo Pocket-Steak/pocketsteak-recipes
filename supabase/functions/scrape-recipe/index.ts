@@ -6,72 +6,53 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // 1. Handle browser permission check
-  if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
-  }
+  if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
     const { url } = await req.json()
     
-    // 2. Fetch the page while pretending to be a real Chrome browser
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
-      }
+    // Grabbing the key you set up in Supabase Secrets earlier
+    const openAiKey = Deno.env.get('OPENAI_API_KEY')
+    if (!openAiKey) throw new Error("OpenAI Key missing from Supabase Secrets")
+
+    // 1. Get the raw HTML
+    const siteRes = await fetch(url, {
+      headers: { 'User-Agent': 'Mozilla/5.0' }
     })
-    
-    const html = await response.text()
+    const html = await siteRes.text()
 
-    // 3. Search the HTML for Recipe Metadata
-    const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)
-    let recipeData = null
-
-    if (jsonLdMatch) {
-      for (const script of jsonLdMatch) {
-        try {
-          const content = script.replace(/<script type="application\/ld\+json">|<\/script>/g, '')
-          const parsed = JSON.parse(content)
-          
-          // Look for "Recipe" in single objects, arrays, or @graph structures
-          const found = Array.isArray(parsed) 
-            ? parsed.find(i => i['@type'] === 'Recipe')
-            : (parsed['@graph'] ? parsed['@graph'].find(i => i['@type'] === 'Recipe') : (parsed['@type'] === 'Recipe' ? parsed : null))
-          
-          if (found) {
-            recipeData = found
-            break
-          }
-        } catch (e) { continue }
-      }
-    }
-
-    if (!recipeData) throw new Error('The Pit couldn\'t find recipe data on this page.')
-
-    // 4. Format the output for the frontend
-    const ingredients = Array.isArray(recipeData.recipeIngredient) 
-      ? recipeData.recipeIngredient.join('\n') 
-      : (recipeData.recipeIngredient || "");
-
-    const directions = Array.isArray(recipeData.recipeInstructions) 
-      ? recipeData.recipeInstructions.map((i: any) => i.text || i).join('\n') 
-      : (recipeData.recipeInstructions || "");
-
-    // 5. Send success back to the website
-    return new Response(
-      JSON.stringify({
-        title: recipeData.name || "Untitled Steak",
-        ingredients: ingredients,
-        directions: directions
+    // 2. Use the AI Chef to extract the recipe
+    const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${openAiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'gpt-4o-mini',
+        messages: [
+          { 
+            role: 'system', 
+            content: 'You are a professional chef. I will give you raw HTML from a recipe site. Return ONLY a JSON object with: title, ingredients (string with newlines), and directions (string with newlines).' 
+          },
+          { role: 'user', content: `Extract the steak recipe from this: ${html.slice(0, 20000)}` }
+        ],
+        response_format: { type: "json_object" }
       }),
-      { 
-        status: 200, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
-      }
-    )
+    })
+
+    const aiData = await aiRes.json()
+    
+    // Check if OpenAI returned an error (like quota)
+    if (aiData.error) throw new Error(aiData.error.message)
+
+    const recipe = JSON.parse(aiData.choices[0].message.content)
+
+    return new Response(JSON.stringify(recipe), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
 
   } catch (error) {
-    // Send error back to the website
     return new Response(JSON.stringify({ error: error.message }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
