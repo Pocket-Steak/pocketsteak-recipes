@@ -6,7 +6,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  // 1. Handle the browser "permission" request (OPTIONS)
+  // 1. Handle browser permission check
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -14,11 +14,16 @@ serve(async (req) => {
   try {
     const { url } = await req.json()
     
-    // 2. Fetch the recipe website
-    const response = await fetch(url)
+    // 2. Fetch the page while pretending to be a real Chrome browser
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+      }
+    })
+    
     const html = await response.text()
 
-    // 3. Look for the "Recipe" data hidden in the site's code
+    // 3. Search the HTML for Recipe Metadata
     const jsonLdMatch = html.match(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)
     let recipeData = null
 
@@ -28,7 +33,7 @@ serve(async (req) => {
           const content = script.replace(/<script type="application\/ld\+json">|<\/script>/g, '')
           const parsed = JSON.parse(content)
           
-          // Improved search to find the Recipe object in the mess
+          // Look for "Recipe" in single objects, arrays, or @graph structures
           const found = Array.isArray(parsed) 
             ? parsed.find(i => i['@type'] === 'Recipe')
             : (parsed['@graph'] ? parsed['@graph'].find(i => i['@type'] === 'Recipe') : (parsed['@type'] === 'Recipe' ? parsed : null))
@@ -43,30 +48,30 @@ serve(async (req) => {
 
     if (!recipeData) throw new Error('The Pit couldn\'t find recipe data on this page.')
 
-    // 4. Clean up ingredients and instructions for PocketSteak
-    const formattedIngredients = Array.isArray(recipeData.recipeIngredient) 
+    // 4. Format the output for the frontend
+    const ingredients = Array.isArray(recipeData.recipeIngredient) 
       ? recipeData.recipeIngredient.join('\n') 
-      : recipeData.recipeIngredient;
+      : (recipeData.recipeIngredient || "");
 
-    // Handle complex instructions (sometimes they are objects, sometimes strings)
-    const formattedDirections = Array.isArray(recipeData.recipeInstructions) 
+    const directions = Array.isArray(recipeData.recipeInstructions) 
       ? recipeData.recipeInstructions.map((i: any) => i.text || i).join('\n') 
-      : recipeData.recipeInstructions;
+      : (recipeData.recipeInstructions || "");
 
-    // 5. Send the clean data back to the website
+    // 5. Send success back to the website
     return new Response(
       JSON.stringify({
         title: recipeData.name || "Untitled Steak",
-        ingredients: formattedIngredients || "",
-        directions: formattedDirections || ""
+        ingredients: ingredients,
+        directions: directions
       }),
       { 
-        status: 200,
+        status: 200, 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       }
     )
 
   } catch (error) {
+    // Send error back to the website
     return new Response(JSON.stringify({ error: error.message }), {
       status: 400,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
