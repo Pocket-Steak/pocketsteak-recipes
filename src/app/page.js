@@ -27,7 +27,7 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(false);
   const [showRefHUD, setShowRefHUD] = useState(false);
 
-  // --- DUAL TIMER LOGIC ---
+  // Timer States
   const [stopwatch, setStopwatch] = useState(0);
   const [swActive, setSwActive] = useState(false);
   const [countdown, setCountdown] = useState(0);
@@ -134,7 +134,6 @@ export default function Home() {
   return (
     <main className="flex h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans overflow-hidden">
       
-      {/* BRANDING HEADER */}
       <div className="mb-4 text-center flex flex-col items-center flex-shrink-0">
         <div className="flex items-center gap-4">
           <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-10 w-auto" />
@@ -301,7 +300,7 @@ export default function Home() {
                               {selectedRecipe.ingredients.split('\n').map((ing, i) => (
                                 <div key={i} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
                                     <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
-                                        {checkedIngredients[i] && <span className="text-[8px] font-bold">✓</span>}
+                                        {checkedIngredients[i] && <span className="text-[8px] font-bold text-white">✓</span>}
                                     </div>
                                     <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ing}</span>
                                 </div>
