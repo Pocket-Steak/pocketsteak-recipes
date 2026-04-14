@@ -5,15 +5,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-async function getRecipeFromAI(html: string, openAiKey: string) {
-  const cleanText = html
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
-    .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, "")
-    .replace(/<[^>]*>?/gm, ' ')
-    .replace(/\s+/g, ' ')
-    .trim()
-    .slice(0, 30000);
-
+// This helper function talks to OpenAI
+async function getRecipeFromAI(content: string, openAiKey: string) {
   const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -23,8 +16,11 @@ async function getRecipeFromAI(html: string, openAiKey: string) {
     body: JSON.stringify({
       model: 'gpt-4o-mini',
       messages: [
-        { role: 'system', content: 'Extract recipe to JSON: title, ingredients, directions. If you cannot find ingredients, return ingredients: "NOT_FOUND".' },
-        { role: 'user', content: `TEXT CONTENT: ${cleanText}` }
+        { 
+          role: 'system', 
+          content: 'You are a professional recipe extractor. Extract the recipe to a JSON object with keys: "title", "ingredients", and "directions". If you cannot find a recipe in the text, return ingredients: "NOT_FOUND".' 
+        },
+        { role: 'user', content: `TEXT CONTENT: ${content.slice(0, 30000)}` }
       ],
       response_format: { type: "json_object" },
       temperature: 0
@@ -35,34 +31,38 @@ async function getRecipeFromAI(html: string, openAiKey: string) {
 }
 
 serve(async (req) => {
+  // Handle CORS for your website
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
     const { url } = await req.json()
     const openAiKey = Deno.env.get('OPENAI_API_KEY')
-    const sbKey = Deno.env.get('SCRAPINGBEE_API_KEY')
 
-    // --- PASS 1: FAST FETCH ---
-    console.log("LOG: Pass 1 - Fast Fetching...");
-    const fastRes = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
-    const fastHtml = await fastRes.text();
+    // --- PASS 1: THE FAST WAY ---
+    console.log("LOG: Pass 1 (Fast Fetching)...")
+    const fastRes = await fetch(url, { 
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36' } 
+    })
+    const html = await fastRes.text()
     
-    let recipe = await getRecipeFromAI(fastHtml, openAiKey);
+    // Check with AI if the fast fetch worked
+    let recipe = await getRecipeFromAI(html, openAiKey)
 
-    // --- CHECK IF WE NEED PASS 2 ---
-    // If ingredients are missing or the AI explicitly said NOT_FOUND
+    // --- PASS 2: THE JINA WAY ($0 STEALTH) ---
+    // If ingredients are missing or the AI says NOT_FOUND, use Jina
     if (!recipe.ingredients || recipe.ingredients === "NOT_FOUND" || recipe.ingredients.length < 10) {
-      console.log("LOG: Pass 1 failed to find ingredients. Pass 2 - Launching STEALTH MODE...");
+      console.log("LOG: Pass 1 failed. Triggering Jina Reader ($0 Stealth)...")
       
-      const sbUrl = `https://app.scrapingbee.com/api/v1/?api_key=${sbKey}&url=${encodeURIComponent(url)}&render_js=true`;
-      const stealthRes = await fetch(sbUrl);
-      const stealthHtml = await stealthRes.text();
+      const stealthRes = await fetch(`https://r.jina.ai/${url}`)
+      const stealthMarkdown = await stealthRes.text()
       
-      recipe = await getRecipeFromAI(stealthHtml, openAiKey);
+      // Send the clean Jina Markdown back to AI for a second try
+      recipe = await getRecipeFromAI(stealthMarkdown, openAiKey)
     } else {
       console.log("LOG: Pass 1 Succeeded. Recipe found without Stealth.");
     }
 
+    // Return the final recipe to your website
     return new Response(JSON.stringify(recipe), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
