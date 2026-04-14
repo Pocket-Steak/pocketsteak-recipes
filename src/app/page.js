@@ -42,42 +42,53 @@ export default function Home() {
     if (view === 'vault') fetchVault();
   }, [view]);
 
-  // --- UPDATED LIVE SCRAPER ---
+  // --- BULLETPROOF SCRAPER LOGIC ---
   const handleUrlScrape = async () => {
     if (!urlInput) return;
     setIsProcessing(true);
 
     try {
-      // Calls the Edge Function
       const { data, error } = await supabase.functions.invoke('scrape-recipe', {
         body: { url: urlInput },
       });
 
       if (error) throw new Error(error.message || "Failed to scrape");
 
-      // Check what we got back in the console (F12)
+      // Debugging: Keep this to see what the AI is sending in the console
       console.log("AI Response Received:", data);
 
-      if (data) {
-        // Reset the current recipe view
-        setRecipe({ title: '', ingredients: '', directions: '' });
-        setShowEditor(true);
+      // Reset the current recipe view
+      setRecipe({ title: '', ingredients: '', directions: '' });
+      setShowEditor(true);
 
-        // Stream the data from the specific link
-        streamText('title', data.title || "New Recipe Found");
-        
-        setTimeout(() => {
-          streamText('ingredients', data.ingredients || "No ingredients found in HTML.");
-        }, 500);
-        
-        setTimeout(() => {
-          streamText('directions', data.directions || "No directions found in HTML.");
-        }, 1200);
-      }
+      // 1. NORMALIZE KEYS (Handle Uppercase/Lowercase variations)
+      const rawTitle = data.title || data.Title || "New Recipe Found";
+      const rawIngredients = data.ingredients || data.Ingredients || data.list || "";
+      const rawDirections = data.directions || data.Directions || data.steps || "";
+
+      // 2. NORMALIZE TYPES (Flatten Arrays/Lists into strings)
+      const cleanIngredients = Array.isArray(rawIngredients) 
+        ? rawIngredients.join('\n') 
+        : rawIngredients;
+
+      const cleanDirections = Array.isArray(rawDirections) 
+        ? rawDirections.join('\n') 
+        : rawDirections;
+
+      // 3. STREAM THE DATA
+      streamText('title', rawTitle);
+      
+      setTimeout(() => {
+        streamText('ingredients', cleanIngredients || "No ingredients found.");
+      }, 500);
+      
+      setTimeout(() => {
+        streamText('directions', cleanDirections || "No directions found.");
+      }, 1200);
 
     } catch (err) {
       console.error("Scrape failed:", err);
-      alert("The Pit hit a snag. Check your browser console for the error!");
+      alert("The Pit hit a snag. Check the browser console!");
     } finally {
       setIsProcessing(false);
       setUrlInput('');
