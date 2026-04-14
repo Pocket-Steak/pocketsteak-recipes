@@ -30,7 +30,7 @@ export default function Home() {
       setRecipe(prev => ({ ...prev, [field]: text.slice(0, i) }));
       i++;
       if (i > text.length) clearInterval(interval);
-    }, 5); // Slightly faster streaming for real data
+    }, 5); 
   };
 
   const fetchVault = async () => {
@@ -42,38 +42,42 @@ export default function Home() {
     if (view === 'vault') fetchVault();
   }, [view]);
 
-  // --- LIVE SCRAPER UPDATE ---
+  // --- UPDATED LIVE SCRAPER ---
   const handleUrlScrape = async () => {
     if (!urlInput) return;
     setIsProcessing(true);
 
     try {
-      // Calls your newly deployed Edge Function
+      // Calls the Edge Function
       const { data, error } = await supabase.functions.invoke('scrape-recipe', {
         body: { url: urlInput },
       });
 
       if (error) throw new Error(error.message || "Failed to scrape");
 
-      // Reset the current recipe view
-      setRecipe({ title: '', ingredients: '', directions: '' });
-      setShowEditor(true);
+      // Check what we got back in the console (F12)
+      console.log("AI Response Received:", data);
 
-      // Start the Matrix Stream with the data returned from the website
-      streamText('title', data.title || "Sourced Recipe");
-      
-      // Delay ingredients and directions slightly for a better visual "flow"
-      setTimeout(() => {
-        streamText('ingredients', data.ingredients);
-      }, 500);
-      
-      setTimeout(() => {
-        streamText('directions', data.directions);
-      }, 1200);
+      if (data) {
+        // Reset the current recipe view
+        setRecipe({ title: '', ingredients: '', directions: '' });
+        setShowEditor(true);
+
+        // Stream the data from the specific link
+        streamText('title', data.title || "New Recipe Found");
+        
+        setTimeout(() => {
+          streamText('ingredients', data.ingredients || "No ingredients found in HTML.");
+        }, 500);
+        
+        setTimeout(() => {
+          streamText('directions', data.directions || "No directions found in HTML.");
+        }, 1200);
+      }
 
     } catch (err) {
       console.error("Scrape failed:", err);
-      alert("The Pit couldn't grab this one automatically. Try the Butcher Block!");
+      alert("The Pit hit a snag. Check your browser console for the error!");
     } finally {
       setIsProcessing(false);
       setUrlInput('');
@@ -136,7 +140,6 @@ export default function Home() {
 
           {view === 'vault' ? (
             <div className="flex flex-col md:flex-row gap-6 h-[75vh]">
-              {/* VAULT SIDEBAR */}
               <div className="w-full md:w-1/3 flex flex-col gap-4">
                 <input placeholder="Search vault..." className="bg-[#1A1A1A] border border-gray-800 p-3 rounded-lg outline-none focus:border-[#FF4500]" onChange={(e) => setSearchQuery(e.target.value)} />
                 <div className="flex-1 overflow-y-auto space-y-2 custom-scrollbar">
@@ -148,7 +151,6 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* VAULT VIEWER */}
               <div className="flex-1 bg-[#1A1A1A] rounded-2xl border border-gray-800 p-8 overflow-y-auto relative shadow-2xl">
                 {selectedRecipe ? (
                   <div className="space-y-6">
@@ -179,7 +181,6 @@ export default function Home() {
               </div>
             </div>
           ) : (
-            /* EDITOR (SCRATCH & PREMADE) */
             <div className="max-w-3xl mx-auto space-y-6">
               {view === 'premade' && !showEditor && (
                 <div className="p-8 border border-gray-800 rounded-2xl bg-[#1A1A1A] space-y-6">
