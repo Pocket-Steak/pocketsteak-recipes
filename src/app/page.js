@@ -289,10 +289,22 @@ export default function Home() {
                       ) : (
                         <div className="grid grid-cols-2 h-full gap-8 overflow-hidden">
                           <div className="flex flex-col h-full border-r border-gray-800 pr-6 overflow-hidden">
-                            <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Ingredients</h4>
+                            <div className="flex justify-between items-center mb-6 flex-shrink-0">
+                                <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest">Ingredients</h4>
+                                <div className="flex gap-2 text-[10px] font-black uppercase">
+                                    <button onClick={copyCheckedItems} className="text-[#FF4500] hover:underline">Copy</button>
+                                    <span className="text-gray-800">/</span>
+                                    <button onClick={clearChecks} className="text-gray-500 hover:text-white">Clear</button>
+                                </div>
+                            </div>
                             <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
                               {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} className="flex items-start gap-3 text-sm text-gray-300"><span>•</span>{ing}</div>
+                                <div key={i} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
+                                    <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
+                                        {checkedIngredients[i] && <span className="text-[8px] font-bold">✓</span>}
+                                    </div>
+                                    <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ing}</span>
+                                </div>
                               ))}
                             </div>
                           </div>
