@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const supabase = createClient(
@@ -119,7 +119,7 @@ export default function Home() {
   return (
     <main className="flex h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans overflow-hidden">
       
-      {/* 1. BRANDING HEADER (Main title stays Orange, tagline is now Orange) */}
+      {/* BRANDING HEADER */}
       <div className="mb-4 text-center flex flex-col items-center flex-shrink-0">
         <div className="flex items-center gap-4">
           <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-10 w-auto" />
@@ -130,21 +130,16 @@ export default function Home() {
 
       {view === 'home' && (
         <div className="w-full max-w-2xl flex flex-col gap-4 mt-10">
-          
-          {/* RECIPE BOX (Title White, NEW Sub-copy Orange) */}
           <button onClick={() => setView('vault')} className="w-full p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col items-center gap-2 hover:border-[#FF4500] hover:bg-[#222222] transition-all group shadow-xl">
             <span className="text-[#FFFFFF] font-black text-3xl italic tracking-tighter uppercase group-hover:scale-105 transition-transform">Recipe Box</span>
             <span className="text-[#FF4500] text-xs uppercase font-bold tracking-widest">Just like grandma’s recipe book, but with tech</span>
           </button>
           
           <div className="grid grid-cols-2 gap-4">
-            {/* FROM SCRATCH (Title White, Sub-copy Orange) */}
             <button onClick={() => { setView('scratch'); setShowEditor(true); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-emerald-500 transition-all">
               <span className="text-[#FFFFFF] font-bold text-lg leading-none">From Scratch</span>
               <p className="text-[#FF4500] text-[11px] leading-tight">Type or paste ingredients and write your own directions.</p>
             </button>
-            
-            {/* CHEF'S SPECIAL (Title White, Labels Orange) */}
             <button onClick={() => { setView('premade'); setShowEditor(false); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-[#FF4500] transition-all">
               <div className="flex flex-col">
                 <span className="text-[#FFFFFF] font-bold text-lg leading-none">Chef's Special</span>
@@ -159,9 +154,7 @@ export default function Home() {
       {view !== 'home' && (
         <div className="w-full max-w-6xl flex flex-col flex-1 overflow-hidden">
           
-          {/* TOP TACTICAL ROW: BACK BUTTON + TIMER */}
           <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            {/* TACTICAL BACK BUTTON (Now using the Pill Design) */}
             <button onClick={() => { setView('home'); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} className="group flex items-center gap-3 px-6 py-2 border border-gray-800 rounded-full bg-[#141414] hover:border-[#FF4500] transition-all shadow-lg">
               <span className="text-gray-500 group-hover:text-[#FF4500] text-sm font-bold">←</span>
               <span className="text-gray-400 group-hover:text-white font-black uppercase text-[9px] tracking-[0.2em]">Command Center</span>
@@ -189,7 +182,7 @@ export default function Home() {
               <div className="w-full md:w-1/4 flex flex-col gap-4 overflow-hidden">
                 <input placeholder="Search files..." className="bg-[#141414] border border-gray-800 p-3 rounded-lg outline-none focus:border-[#FF4500] text-sm" onChange={(e) => setSearchQuery(e.target.value)} />
                 <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                  {vaultItems.filter(i => i.title.toLowerCase().includes(searchQuery.toLowerCase())).map(item => (
+                  {filteredVault.map(item => (
                     <div key={item.id} onClick={() => { setSelectedRecipe(item); setIsCookingMode(false); setIsEditing(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-transparent bg-[#141414] hover:bg-[#1A1A1A]'}`}>
                       <h3 className="font-bold text-sm truncate uppercase tracking-tight">{item.title}</h3>
                     </div>
@@ -198,28 +191,24 @@ export default function Home() {
               </div>
 
               <div className="flex-1 bg-[#141414] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl relative">
-                
-                {/* REFERENCE HUD OVERLAY (Int Temps + OZ to Cups) */}
                 {showRefHUD && (
                   <div className="absolute top-2 right-6 z-50 bg-black/98 border border-[#FF4500]/50 p-6 rounded-2xl shadow-2xl backdrop-blur-md w-[400px]">
                     <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
                       <span className="text-[#FF4500] font-black uppercase text-[10px] tracking-widest">Pitmaster Ref Intel</span>
                       <button onClick={() => setShowRefHUD(false)} className="text-gray-600 hover:text-white">✕</button>
                     </div>
-                    <div className="grid grid-cols-2 gap-6">
-                      <div className="space-y-4 text-[10px] font-mono">
+                    <div className="grid grid-cols-2 gap-6 text-[10px] font-mono">
+                      <div className="space-y-4">
                         <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Internal Temps</p>
                         <div className="flex justify-between"><span>Rare</span><span className="text-[#FF4500]">125°F</span></div>
                         <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#FF4500]">135°F</span></div>
                         <div className="flex justify-between"><span>Medium</span><span className="text-[#FF4500]">145°F</span></div>
                         <div className="flex justify-between"><span>Chicken</span><span className="text-[#FF4500]">165°F</span></div>
-                        <div className="flex justify-between"><span>Pork</span><span className="text-[#FF4500]">145°F+</span></div>
                       </div>
-                      <div className="space-y-4 text-[10px] font-mono">
+                      <div className="space-y-4">
                         <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Conversions</p>
                         <div className="flex justify-between"><span>1 Cup</span><span>8 oz</span></div>
                         <div className="flex justify-between"><span>1/2 Cup</span><span>4 oz</span></div>
-                        <div className="flex justify-between"><span>1/4 Cup</span><span>2 oz</span></div>
                         <div className="flex justify-between"><span>1 Tbsp</span><span>3 tsp</span></div>
                         <div className="flex justify-between"><span>Pint</span><span>16 oz</span></div>
                       </div>
@@ -231,7 +220,6 @@ export default function Home() {
                   <>
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A] flex-shrink-0">
                       <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
-                      
                       <div className="flex gap-2">
                         <button onClick={() => setShowRefHUD(!showRefHUD)} className="px-4 py-1.5 rounded-full font-black text-[9px] border border-gray-700 text-gray-500 hover:text-[#FF4500]">Reference</button>
                         {!isEditing && (
@@ -282,63 +270,4 @@ export default function Home() {
                         </div>
                       ) : (
                         <div className="grid grid-cols-2 h-full gap-8 overflow-hidden">
-                          <div className="flex flex-col h-full border-r border-gray-800 pr-6 overflow-hidden">
-                            <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Ingredients</h4>
-                            <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-                              {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} className="flex items-start gap-3 text-sm text-gray-300"><span>•</span>{ing}</div>
-                              ))}
-                            </div>
-                          </div>
-                          <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar text-sm text-gray-400">
-                            <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Directions</h4>
-                            {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
-                              <div key={i} className="flex gap-3"><span className="text-[#FF4500] font-black italic">{i + 1}</span>{step}</div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="max-w-xl mx-auto w-full flex-1 overflow-y-auto custom-scrollbar pb-10">
-              {view === 'premade' && !showEditor && (
-                <div className="p-10 border border-gray-800 rounded-3xl bg-[#141414] text-center mt-10 shadow-2xl">
-                  <h2 className="text-xl font-black text-[#FF4500] uppercase italic tracking-tighter mb-6">Chef's Special</h2>
-                  <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="PASTE URL HERE" className="w-full bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 outline-none focus:border-[#FF4500] text-center font-bold mb-4" />
-                  <button onClick={handleUrlScrape} className={`w-full p-4 bg-[#FF4500] text-white font-black rounded-xl ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? 'PREPPING...' : 'PREPARE RECIPE'}</button>
-                </div>
-              )}
-
-              {(view === 'scratch' || (view === 'premade' && showEditor)) && (
-                <div className="p-8 border border-gray-800 rounded-3xl bg-[#141414] shadow-2xl space-y-6">
-                  <div className="flex justify-between items-center border-b border-gray-800 pb-4">
-                    <h2 className="text-xs font-black text-gray-600 uppercase tracking-widest">Recipe Intake Form</h2>
-                    <button onClick={() => setShowButcherBlock(!showButcherBlock)} className="text-[9px] bg-gray-800 px-3 py-1 rounded-full text-gray-400 hover:text-white transition-all uppercase font-black tracking-widest">
-                      {showButcherBlock ? "- Hide Butcher" : "+ Butcher Block"}
-                    </button>
-                  </div>
-                  {showButcherBlock && (
-                    <div className="p-4 bg-[#0D0D0D] border border-gray-800 rounded-xl space-y-4">
-                      <textarea value={butcherInput} onChange={(e) => setButcherInput(e.target.value)} className="w-full h-32 bg-transparent outline-none text-xs text-gray-500" placeholder="Dump raw text here..." />
-                      <button onClick={processButcherBlock} className="w-full p-2 bg-white text-black font-black text-[9px] rounded uppercase">Butcher & Transfer</button>
-                    </div>
-                  )}
-                  <input value={recipe.title} onChange={(e) => setRecipe({...recipe, title: e.target.value})} placeholder="RECIPE NAME" className="w-full bg-transparent border-b border-gray-800 text-3xl font-black p-2 outline-none focus:border-[#FF4500] uppercase italic" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
-                    <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
-                  </div>
-                  <button onClick={saveRecipe} className="w-full p-4 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest transition-all">Secure to Vault</button>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-    </main>
-  );
-}
+                          <div className="flex flex-col h-
