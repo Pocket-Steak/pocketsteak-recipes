@@ -24,12 +24,13 @@ export default function Home() {
   const [checkedIngredients, setCheckedIngredients] = useState({});
 
   const streamText = (field, text) => {
+    if (!text) return;
     let i = 0;
     const interval = setInterval(() => {
       setRecipe(prev => ({ ...prev, [field]: text.slice(0, i) }));
       i++;
       if (i > text.length) clearInterval(interval);
-    }, 10);
+    }, 5); // Slightly faster streaming for real data
   };
 
   const fetchVault = async () => {
@@ -41,17 +42,44 @@ export default function Home() {
     if (view === 'vault') fetchVault();
   }, [view]);
 
-  const handleUrlScrape = () => {
+  // --- LIVE SCRAPER UPDATE ---
+  const handleUrlScrape = async () => {
+    if (!urlInput) return;
     setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
+
+    try {
+      // Calls your newly deployed Edge Function
+      const { data, error } = await supabase.functions.invoke('scrape-recipe', {
+        body: { url: urlInput },
+      });
+
+      if (error) throw new Error(error.message || "Failed to scrape");
+
+      // Reset the current recipe view
+      setRecipe({ title: '', ingredients: '', directions: '' });
       setShowEditor(true);
-      streamText('title', "Scraped Ribeye Masterpiece");
-      streamText('ingredients', "1. 24oz Cowboy Ribeye\n2. Smoked Sea Salt\n3. Black Peppercorns\n4. Beef Tallow");
-      streamText('directions', "1. Temper meat for 1 hour.\n2. Sear at 500°F.\n3. Rest for 10 minutes.");
+
+      // Start the Matrix Stream with the data returned from the website
+      streamText('title', data.title || "Sourced Recipe");
+      
+      // Delay ingredients and directions slightly for a better visual "flow"
+      setTimeout(() => {
+        streamText('ingredients', data.ingredients);
+      }, 500);
+      
+      setTimeout(() => {
+        streamText('directions', data.directions);
+      }, 1200);
+
+    } catch (err) {
+      console.error("Scrape failed:", err);
+      alert("The Pit couldn't grab this one automatically. Try the Butcher Block!");
+    } finally {
+      setIsProcessing(false);
       setUrlInput('');
-    }, 1500);
+    }
   };
+  // ---------------------------
 
   const processButcherBlock = () => {
     setRecipe({ ...recipe, ingredients: butcherInput });
