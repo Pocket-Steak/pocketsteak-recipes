@@ -6,22 +6,22 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // Handle browser permission check
   if (req.method === 'OPTIONS') return new Response('ok', { headers: corsHeaders })
 
   try {
     const { url } = await req.json()
     
-    // Grabbing the key you set up in Supabase Secrets earlier
     const openAiKey = Deno.env.get('OPENAI_API_KEY')
     if (!openAiKey) throw new Error("OpenAI Key missing from Supabase Secrets")
 
-    // 1. Get the raw HTML
+    // 1. Fetch the raw HTML from the website
     const siteRes = await fetch(url, {
-      headers: { 'User-Agent': 'Mozilla/5.0' }
+      headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36' }
     })
     const html = await siteRes.text()
 
-    // 2. Use the AI Chef to extract the recipe
+    // 2. Use OpenAI to "Read" the specific HTML provided
     const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -33,22 +33,30 @@ serve(async (req) => {
         messages: [
           { 
             role: 'system', 
-            content: 'You are a professional chef. I will give you raw HTML from a recipe site. Return ONLY a JSON object with: title, ingredients (string with newlines), and directions (string with newlines).' 
+            content: 'You are a master data extractor. I will provide HTML from a recipe website. Your task is to extract the EXACT title, ingredients, and directions from the text provided. Do not use your own knowledge; only use what is in the HTML. Return a JSON object with: "title", "ingredients" (string), and "directions" (string).' 
           },
-          { role: 'user', content: `Extract the steak recipe from this: ${html.slice(0, 20000)}` }
+          { 
+            role: 'user', 
+            content: `Extract the specific recipe from this HTML: ${html.slice(0, 30000)}` 
+          }
         ],
-        response_format: { type: "json_object" }
+        response_format: { type: "json_object" },
+        temperature: 0.1 // Keeps the AI focused on facts, not creativity
       }),
     })
 
     const aiData = await aiRes.json()
     
-    // Check if OpenAI returned an error (like quota)
     if (aiData.error) throw new Error(aiData.error.message)
 
     const recipe = JSON.parse(aiData.choices[0].message.content)
 
-    return new Response(JSON.stringify(recipe), {
+    // 3. Send the specific recipe back to your website
+    return new Response(JSON.stringify({
+      title: recipe.title || "Unknown Recipe",
+      ingredients: recipe.ingredients || "",
+      directions: recipe.directions || ""
+    }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })
 
