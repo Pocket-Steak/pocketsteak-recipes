@@ -93,7 +93,7 @@ export default function Home() {
       title: recipe.title, 
       ingredients: recipe.ingredients, 
       directions: recipe.directions,
-      description: recipe.ingredients.substring(0, 50) 
+      description: (recipe.ingredients || "").substring(0, 50) 
     }]);
     if (!error) { setView('home'); setShowEditor(false); fetchVault(); }
   };
@@ -270,4 +270,67 @@ export default function Home() {
                         </div>
                       ) : (
                         <div className="grid grid-cols-2 h-full gap-8 overflow-hidden">
-                          <div className="flex flex-col h-
+                          <div className="flex flex-col h-full border-r border-gray-800 pr-6 overflow-hidden">
+                            <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Ingredients</h4>
+                            <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+                              {selectedRecipe.ingredients.split('\n').map((ing, i) => (
+                                <div key={i} className="flex items-start gap-3 text-sm text-gray-300"><span>•</span>{ing}</div>
+                              ))}
+                            </div>
+                          </div>
+                          <div className="flex flex-col h-full pl-2 overflow-hidden">
+                            <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Directions</h4>
+                            <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar text-sm text-gray-400">
+                              {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
+                                <div key={i} className="flex gap-3"><span className="text-[#FF4500] font-black italic">{i + 1}</span>{step}</div>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                ) : (
+                  <div className="h-full flex items-center justify-center text-gray-800 uppercase font-black text-[10px] tracking-[0.4em] animate-pulse">Select intel from sidebar</div>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="max-w-xl mx-auto w-full flex-1 overflow-y-auto custom-scrollbar pb-10">
+              {view === 'premade' && !showEditor && (
+                <div className="p-10 border border-gray-800 rounded-3xl bg-[#141414] text-center mt-10 shadow-2xl">
+                  <h2 className="text-xl font-black text-[#FF4500] uppercase italic tracking-tighter mb-6">Chef's Special</h2>
+                  <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="PASTE URL HERE" className="w-full bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 outline-none focus:border-[#FF4500] text-center font-bold mb-4" />
+                  <button onClick={handleUrlScrape} className={`w-full p-4 bg-[#FF4500] text-white font-black rounded-xl ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? 'PREPPING...' : 'PREPARE RECIPE'}</button>
+                </div>
+              )}
+
+              {(view === 'scratch' || (view === 'premade' && showEditor)) && (
+                <div className="p-8 border border-gray-800 rounded-3xl bg-[#141414] shadow-2xl space-y-6">
+                  <div className="flex justify-between items-center border-b border-gray-800 pb-4">
+                    <h2 className="text-xs font-black text-gray-600 uppercase tracking-widest">Recipe Intake Form</h2>
+                    <button onClick={() => setShowButcherBlock(!showButcherBlock)} className="text-[9px] bg-gray-800 px-3 py-1 rounded-full text-gray-400 hover:text-white transition-all uppercase font-black tracking-widest">
+                      {showButcherBlock ? "- Hide Butcher" : "+ Butcher Block"}
+                    </button>
+                  </div>
+                  {showButcherBlock && (
+                    <div className="p-4 bg-[#0D0D0D] border border-gray-800 rounded-xl space-y-4">
+                      <textarea value={butcherInput} onChange={(e) => setButcherInput(e.target.value)} className="w-full h-32 bg-transparent outline-none text-xs text-gray-500" placeholder="Dump raw text here..." />
+                      <button onClick={processButcherBlock} className="w-full p-2 bg-white text-black font-black text-[9px] rounded uppercase">Butcher & Transfer</button>
+                    </div>
+                  )}
+                  <input value={recipe.title} onChange={(e) => setRecipe({...recipe, title: e.target.value})} placeholder="RECIPE NAME" className="w-full bg-transparent border-b border-gray-800 text-3xl font-black p-2 outline-none focus:border-[#FF4500] uppercase italic" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
+                    <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
+                  </div>
+                  <button onClick={saveRecipe} className="w-full p-4 bg-emerald-700/80 hover:bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest transition-all">Secure to Vault</button>
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      )}
+    </main>
+  );
+}
