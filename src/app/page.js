@@ -13,7 +13,7 @@ export default function Home() {
   const [urlInput, setUrlInput] = useState('');
   const [butcherInput, setButcherInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [recipe, setRecipe] = useState({ title: '', ingredients: '', directions: '' });
+  const [recipe, setRecipe] = useState({ title: '', ingredients: '', directions: '', notes: '' });
   const [showEditor, setShowEditor] = useState(false);
   const [showButcherBlock, setShowButcherBlock] = useState(false);
   
@@ -73,7 +73,8 @@ export default function Home() {
       setRecipe({ 
         title: data.title || "New Intel", 
         ingredients: Array.isArray(data.ingredients) ? data.ingredients.join('\n') : data.ingredients, 
-        directions: Array.isArray(data.directions) ? data.directions.join('\n') : data.directions 
+        directions: Array.isArray(data.directions) ? data.directions.join('\n') : data.directions,
+        notes: ''
       });
       setShowEditor(true);
     } catch (err) { alert("Snag in the pit."); } finally { setIsProcessing(false); setUrlInput(''); }
@@ -93,6 +94,7 @@ export default function Home() {
       title: recipe.title, 
       ingredients: recipe.ingredients, 
       directions: recipe.directions,
+      notes: recipe.notes,
       description: (recipe.ingredients || "").substring(0, 50) 
     }]);
     if (!error) { setView('home'); setShowEditor(false); fetchVault(); }
@@ -102,7 +104,8 @@ export default function Home() {
     const { error } = await supabase.from('recipes').update({ 
       title: selectedRecipe.title, 
       ingredients: selectedRecipe.ingredients, 
-      directions: selectedRecipe.directions 
+      directions: selectedRecipe.directions,
+      notes: selectedRecipe.notes || ''
     }).eq('id', selectedRecipe.id);
     if (!error) { setIsEditing(false); fetchVault(); alert("Vault Updated."); }
   };
@@ -257,10 +260,11 @@ export default function Home() {
                       {isEditing ? (
                         <div className="absolute inset-6 flex flex-col gap-4">
                           <input value={selectedRecipe.title} onChange={(e) => setSelectedRecipe({...selectedRecipe, title: e.target.value})} className="bg-transparent border-b border-gray-800 p-2 text-2xl font-bold outline-none focus:border-[#FF4500]" />
-                          <div className="grid grid-cols-2 gap-4 flex-1 overflow-hidden">
+                          <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
                             <textarea value={selectedRecipe.ingredients} onChange={(e) => setSelectedRecipe({...selectedRecipe, ingredients: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
                             <textarea value={selectedRecipe.directions} onChange={(e) => setSelectedRecipe({...selectedRecipe, directions: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
                           </div>
+                          <textarea value={selectedRecipe.notes || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, notes: e.target.value})} placeholder="NOTES" className="w-full h-32 flex-shrink-0 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
                           <button onClick={updateRecipe} className="w-full p-4 bg-[#FF4500] text-white font-black uppercase tracking-widest rounded-xl hover:bg-[#E63E00] transition-all">Update Cookbook</button>
                         </div>
                       ) : isCookingMode ? (
@@ -363,6 +367,7 @@ export default function Home() {
                     <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                     <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                   </div>
+                  <textarea value={recipe.notes} onChange={(e) => setRecipe({...recipe, notes: e.target.value})} placeholder="NOTES" className="w-full h-32 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                   <button onClick={saveRecipe} className="w-full p-4 bg-[#FF4500] text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-lg hover:bg-[#E63E00]">SAVE TO COOKBOOK</button>
                 </div>
               )}
