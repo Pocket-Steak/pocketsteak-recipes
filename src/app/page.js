@@ -1,7 +1,9 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { createClient } from '@supabase/supabase-js';
+
+const emptyRecipe = { title: '', ingredients: '', directions: '', notes: '' };
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -9,11 +11,11 @@ const supabase = createClient(
 );
 
 export default function Home() {
-  const [view, setView] = useState('home');
+  const [view, setView] = useState('vault');
   const [urlInput, setUrlInput] = useState('');
   const [butcherInput, setButcherInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
-  const [recipe, setRecipe] = useState({ title: '', ingredients: '', directions: '', notes: '' });
+  const [recipe, setRecipe] = useState(emptyRecipe);
   const [showEditor, setShowEditor] = useState(false);
   const [showButcherBlock, setShowButcherBlock] = useState(false);
   
@@ -97,7 +99,7 @@ export default function Home() {
       notes: recipe.notes,
       description: (recipe.ingredients || "").substring(0, 50) 
     }]);
-    if (!error) { setView('home'); setShowEditor(false); fetchVault(); }
+    if (!error) { setView('vault'); setShowEditor(false); setRecipe(emptyRecipe); fetchVault(); }
   };
 
   const updateRecipe = async () => {
@@ -132,6 +134,38 @@ export default function Home() {
     setCheckedDirections({});
   };
 
+  const openRecipeBox = () => {
+    setView('vault');
+    setShowEditor(false);
+    setShowButcherBlock(false);
+    setIsCookingMode(false);
+    setIsEditing(false);
+    setShowRefHUD(false);
+  };
+
+  const openScratchForm = () => {
+    setRecipe(emptyRecipe);
+    setSelectedRecipe(null);
+    setView('scratch');
+    setShowEditor(true);
+    setShowButcherBlock(false);
+    setIsCookingMode(false);
+    setIsEditing(false);
+    setShowRefHUD(false);
+  };
+
+  const openImportForm = () => {
+    setRecipe(emptyRecipe);
+    setUrlInput('');
+    setSelectedRecipe(null);
+    setView('premade');
+    setShowEditor(false);
+    setShowButcherBlock(false);
+    setIsCookingMode(false);
+    setIsEditing(false);
+    setShowRefHUD(false);
+  };
+
   const filteredVault = vaultItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
 
   return (
@@ -145,40 +179,20 @@ export default function Home() {
         <p className="text-[#FF4500] uppercase tracking-[0.4em] text-[7px] font-black italic mt-1">Pitmaster Intelligence</p>
       </div>
 
-      {view === 'home' && (
-        <div className="w-full max-w-2xl flex flex-col gap-4 mt-10">
-          <button onClick={() => setView('vault')} className="w-full p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col items-center gap-2 hover:border-[#FF4500] hover:bg-[#222222] transition-all group shadow-xl">
-            <span className="text-[#FFFFFF] font-black text-3xl italic tracking-tighter uppercase group-hover:scale-105 transition-transform">Recipe Box</span>
-            <span className="text-[#FF4500] text-xs uppercase font-bold tracking-widest text-center">Just like grandma’s recipe book, but with tech</span>
-          </button>
+      <div className="w-full max-w-6xl flex flex-col flex-1 overflow-hidden">
           
-          <div className="grid grid-cols-2 gap-4">
-            <button onClick={() => { setView('scratch'); setShowEditor(true); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-emerald-500 transition-all">
-              <div className="flex flex-col">
-                <span className="text-[#FFFFFF] font-bold text-lg leading-none">From Scratch</span>
-                <span className="text-[#FF4500] text-[9px] font-black uppercase tracking-tighter">Manual Intake</span>
-              </div>
-              <p className="text-[#FF4500] text-[11px] leading-tight">Type or paste ingredients and write your own directions.</p>
-            </button>
-            <button onClick={() => { setView('premade'); setShowEditor(false); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-[#FF4500] transition-all">
-              <div className="flex flex-col">
-                <span className="text-[#FFFFFF] font-bold text-lg leading-none">Chef&apos;s Special</span>
-                <span className="text-[#FF4500] text-[9px] font-black uppercase tracking-tighter">Import from Web</span>
-              </div>
-              <p className="text-[#FF4500] text-[11px] leading-tight">Paste a recipe link and let the chef prepare it for you.</p>
-            </button>
-          </div>
-        </div>
-      )}
-
-      {view !== 'home' && (
-        <div className="w-full max-w-6xl flex flex-col flex-1 overflow-hidden">
-          
-          <div className="flex justify-between items-center mb-4 flex-shrink-0">
-            <button onClick={() => { setView('home'); setSelectedRecipe(null); setIsCookingMode(false); setIsEditing(false); }} className="group flex items-center gap-3 px-6 py-2 border border-gray-800 rounded-full bg-[#141414] hover:border-[#FF4500] transition-all shadow-lg">
-              <span className="text-gray-500 group-hover:text-[#FF4500] text-sm font-bold">←</span>
-              <span className="text-gray-400 group-hover:text-white font-black uppercase text-[9px] tracking-[0.2em]">Command Center</span>
-            </button>
+          <div className="flex justify-between items-center gap-4 mb-4 flex-shrink-0">
+            <div className="flex flex-wrap items-center gap-2">
+              <button onClick={openRecipeBox} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'vault' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
+                Recipe Box
+              </button>
+              <button onClick={openScratchForm} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'scratch' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
+                + From Scratch
+              </button>
+              <button onClick={openImportForm} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'premade' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
+                + Import Recipe
+              </button>
+            </div>
 
             {isCookingMode && (
               <div className="flex items-stretch bg-black border-2 border-gray-800 rounded-xl overflow-hidden shadow-2xl h-14">
@@ -197,14 +211,13 @@ export default function Home() {
             )}
           </div>
 
-          {view === 'vault' ? (
-            <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
+          <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
               <div className="w-full md:w-1/4 flex flex-col gap-4 overflow-hidden">
                 <input placeholder="Search files..." className="bg-[#141414] border-2 border-gray-800 p-3 rounded-lg outline-none focus:border-[#FF4500] text-sm shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)]" onChange={(e) => setSearchQuery(e.target.value)} />
                 <div className="flex-1 min-h-0 rounded-2xl border-2 border-gray-700 bg-[#101010] p-3 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_18px_45px_rgba(0,0,0,0.55)] overflow-hidden">
                   <div className="h-full overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     {filteredVault.map(item => (
-                      <div key={item.id} onClick={() => { setSelectedRecipe(item); setIsCookingMode(false); setIsEditing(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-gray-900 bg-[#141414] hover:border-gray-700 hover:bg-[#1A1A1A]'}`}>
+                      <div key={item.id} onClick={() => { setSelectedRecipe(item); setView('vault'); setShowEditor(false); setShowButcherBlock(false); setIsCookingMode(false); setIsEditing(false); setShowRefHUD(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-gray-900 bg-[#141414] hover:border-gray-700 hover:bg-[#1A1A1A]'}`}>
                         <h3 className="font-bold text-sm truncate uppercase tracking-tight">{item.title}</h3>
                       </div>
                     ))}
@@ -238,7 +251,39 @@ export default function Home() {
                   </div>
                 )}
 
-                {selectedRecipe ? (
+                {view === 'premade' && !showEditor ? (
+                  <div className="h-full overflow-y-auto custom-scrollbar p-8">
+                    <div className="max-w-xl mx-auto p-10 border-2 border-gray-800 rounded-2xl bg-[#101010] text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_18px_45px_rgba(0,0,0,0.45)]">
+                      <h2 className="text-xl font-black text-[#FF4500] uppercase italic tracking-tighter mb-6">Import Recipe</h2>
+                      <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="PASTE URL HERE" className="w-full bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 outline-none focus:border-[#FF4500] text-center font-bold mb-4" />
+                      <button onClick={handleUrlScrape} className={`w-full p-4 bg-[#FF4500] text-white font-black rounded-xl ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? 'PREPPING...' : 'PREPARE RECIPE'}</button>
+                    </div>
+                  </div>
+                ) : (view === 'scratch' || (view === 'premade' && showEditor)) ? (
+                  <div className="h-full overflow-y-auto custom-scrollbar p-8">
+                    <div className="max-w-2xl mx-auto p-8 border-2 border-gray-800 rounded-2xl bg-[#101010] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_18px_45px_rgba(0,0,0,0.45)] space-y-6">
+                      <div className="flex justify-between items-center border-b border-gray-800 pb-4">
+                        <h2 className="text-xs font-black text-gray-600 uppercase tracking-widest">Recipe Intake Form</h2>
+                        <button onClick={() => setShowButcherBlock(!showButcherBlock)} className="text-[9px] bg-gray-800 px-3 py-1 rounded-full text-gray-400 hover:text-white transition-all uppercase font-black tracking-widest">
+                          {showButcherBlock ? "- Hide Butcher" : "+ Butcher Block"}
+                        </button>
+                      </div>
+                      {showButcherBlock && (
+                        <div className="p-4 bg-[#0D0D0D] border border-gray-800 rounded-xl space-y-4">
+                          <textarea value={butcherInput} onChange={(e) => setButcherInput(e.target.value)} className="w-full h-32 bg-transparent outline-none text-xs text-gray-500" placeholder="Dump raw text here..." />
+                          <button onClick={processButcherBlock} className="w-full p-2 bg-white text-black font-black text-[9px] rounded uppercase">Butcher & Transfer</button>
+                        </div>
+                      )}
+                      <input value={recipe.title} onChange={(e) => setRecipe({...recipe, title: e.target.value})} placeholder="RECIPE NAME" className="w-full bg-transparent border-b border-gray-800 text-3xl font-black p-2 outline-none focus:border-[#FF4500] uppercase italic" />
+                      <div className="grid grid-cols-2 gap-4">
+                        <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
+                        <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
+                      </div>
+                      <textarea value={recipe.notes} onChange={(e) => setRecipe({...recipe, notes: e.target.value})} placeholder="NOTES" className="w-full h-32 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
+                      <button onClick={saveRecipe} className="w-full p-4 bg-[#FF4500] text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-lg hover:bg-[#E63E00]">SAVE TO COOKBOOK</button>
+                    </div>
+                  </div>
+                ) : selectedRecipe ? (
                   <>
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A] flex-shrink-0">
                       <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
@@ -336,45 +381,9 @@ export default function Home() {
                 ) : (
                   <div className="h-full flex items-center justify-center text-gray-800 uppercase font-black text-[10px] tracking-[0.4em] animate-pulse">Select intel from sidebar</div>
                 )}
-              </div>
             </div>
-          ) : (
-            <div className="max-w-xl mx-auto w-full flex-1 overflow-y-auto custom-scrollbar pb-10">
-              {view === 'premade' && !showEditor && (
-                <div className="p-10 border border-gray-800 rounded-3xl bg-[#141414] text-center mt-10 shadow-2xl">
-                  <h2 className="text-xl font-black text-[#FF4500] uppercase italic tracking-tighter mb-6">Chef&apos;s Special</h2>
-                  <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="PASTE URL HERE" className="w-full bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 outline-none focus:border-[#FF4500] text-center font-bold mb-4" />
-                  <button onClick={handleUrlScrape} className={`w-full p-4 bg-[#FF4500] text-white font-black rounded-xl ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? 'PREPPING...' : 'PREPARE RECIPE'}</button>
-                </div>
-              )}
-
-              {(view === 'scratch' || (view === 'premade' && showEditor)) && (
-                <div className="p-8 border border-gray-800 rounded-3xl bg-[#141414] shadow-2xl space-y-6">
-                  <div className="flex justify-between items-center border-b border-gray-800 pb-4">
-                    <h2 className="text-xs font-black text-gray-600 uppercase tracking-widest">Recipe Intake Form</h2>
-                    <button onClick={() => setShowButcherBlock(!showButcherBlock)} className="text-[9px] bg-gray-800 px-3 py-1 rounded-full text-gray-400 hover:text-white transition-all uppercase font-black tracking-widest">
-                      {showButcherBlock ? "- Hide Butcher" : "+ Butcher Block"}
-                    </button>
-                  </div>
-                  {showButcherBlock && (
-                    <div className="p-4 bg-[#0D0D0D] border border-gray-800 rounded-xl space-y-4">
-                      <textarea value={butcherInput} onChange={(e) => setButcherInput(e.target.value)} className="w-full h-32 bg-transparent outline-none text-xs text-gray-500" placeholder="Dump raw text here..." />
-                      <button onClick={processButcherBlock} className="w-full p-2 bg-white text-black font-black text-[9px] rounded uppercase">Butcher & Transfer</button>
-                    </div>
-                  )}
-                  <input value={recipe.title} onChange={(e) => setRecipe({...recipe, title: e.target.value})} placeholder="RECIPE NAME" className="w-full bg-transparent border-b border-gray-800 text-3xl font-black p-2 outline-none focus:border-[#FF4500] uppercase italic" />
-                  <div className="grid grid-cols-2 gap-4">
-                    <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
-                    <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
-                  </div>
-                  <textarea value={recipe.notes} onChange={(e) => setRecipe({...recipe, notes: e.target.value})} placeholder="NOTES" className="w-full h-32 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
-                  <button onClick={saveRecipe} className="w-full p-4 bg-[#FF4500] text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-lg hover:bg-[#E63E00]">SAVE TO COOKBOOK</button>
-                </div>
-              )}
-            </div>
-          )}
+          </div>
         </div>
-      )}
     </main>
   );
 }
