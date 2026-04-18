@@ -22,6 +22,15 @@ async function fetchText(url: string, options: RequestInit = {}) {
   return text
 }
 
+async function tryFetchText(url: string, options: RequestInit = {}) {
+  try {
+    return await fetchText(url, options)
+  } catch (error) {
+    console.log(`LOG: Fast fetch failed -> ${error.message}`)
+    return ''
+  }
+}
+
 async function getRecipeFromAI(content: string, openAiKey: string) {
   const aiRes = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
@@ -80,12 +89,12 @@ serve(async (req) => {
 
     console.log(`LOG: Starting extraction for ${url}`)
 
-    const html = await fetchText(url, { 
+    const html = await tryFetchText(url, { 
       headers: { 'User-Agent': 'Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1' } 
     })
     console.log(`LOG: Pass 1 fetched ${html.length} chars`)
     
-    let recipe = await getRecipeFromAI(html, openAiKey)
+    let recipe = html ? await getRecipeFromAI(html, openAiKey) : { ingredients: "NOT_FOUND" }
 
     if (!recipe.ingredients || recipe.ingredients === "NOT_FOUND" || recipe.ingredients.length < 10) {
       console.log("LOG: Pass 1 failed. Triggering Jina Fallback...")
