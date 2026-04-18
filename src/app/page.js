@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const emptyRecipe = { title: '', ingredients: '', directions: '', notes: '' };
@@ -11,6 +11,14 @@ const supabase = createClient(
 );
 
 export default function Home() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [authActionLoading, setAuthActionLoading] = useState(false);
+  const [authMode, setAuthMode] = useState('signin');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [view, setView] = useState('vault');
   const [urlInput, setUrlInput] = useState('');
   const [butcherInput, setButcherInput] = useState('');
@@ -36,6 +44,47 @@ export default function Home() {
   const [cdActive, setCdActive] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
+    const loadSession = async () => {
+      try {
+        const { data } = await Promise.race([
+          supabase.auth.getSession(),
+          new Promise((resolve) => setTimeout(() => resolve({ data: { session: null } }), 2000))
+        ]);
+
+        if (!mounted) return;
+        setUser(data.session?.user ?? null);
+      } catch {
+        if (!mounted) return;
+        setUser(null);
+      } finally {
+        if (mounted) setAuthLoading(false);
+      }
+    };
+
+    loadSession();
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (event === 'PASSWORD_RECOVERY') setIsPasswordRecovery(true);
+      if (!session?.user) {
+        setVaultItems([]);
+        setSelectedRecipe(null);
+        setView('vault');
+        setRecipe(emptyRecipe);
+        setIsCookingMode(false);
+        setIsEditing(false);
+      }
+    });
+
+    return () => {
+      mounted = false;
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
     let int;
     if (swActive) int = setInterval(() => setStopwatch(s => s + 1), 1000);
     return () => clearInterval(int);
@@ -59,12 +108,85 @@ export default function Home() {
     return `${mins}:${secs.toString().padStart(2, '0')}`;
   };
 
-  const fetchVault = async () => {
-    const { data, error } = await supabase.from('recipes').select('*').order('created_at', { ascending: false });
+  const fetchVault = useCallback(async () => {
+    if (!user) return;
+
+    const { data, error } = await supabase
+      .from('recipes')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      alert(`Unable to load recipes: ${error.message}`);
+      return;
+    }
+
     if (!error) setVaultItems(data);
+  }, [user]);
+
+  useEffect(() => { if (user && view === 'vault') fetchVault(); }, [user, view, fetchVault]);
+
+  const handleAuthSubmit = async (e) => {
+    e.preventDefault();
+    if (!authEmail || !authPassword) return;
+
+    setAuthActionLoading(true);
+    const { error } = authMode === 'signin'
+      ? await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword })
+      : await supabase.auth.signUp({ email: authEmail, password: authPassword });
+
+    setAuthActionLoading(false);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    if (authMode === 'signup') {
+      alert('Account created. Check your email if confirmation is enabled.');
+    }
   };
 
-  useEffect(() => { if (view === 'vault') fetchVault(); }, [view]);
+  const sendPasswordReset = async () => {
+    if (!authEmail) {
+      alert('Enter your email first.');
+      return;
+    }
+
+    const { error } = await supabase.auth.resetPasswordForEmail(authEmail, {
+      redirectTo: window.location.origin
+    });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    alert('Password reset email sent.');
+  };
+
+  const signOut = async () => {
+    setIsPasswordRecovery(false);
+    setNewPassword('');
+    await supabase.auth.signOut();
+  };
+
+  const updatePassword = async (e) => {
+    e.preventDefault();
+    if (!newPassword) return;
+
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    setIsPasswordRecovery(false);
+    setNewPassword('');
+    alert('Password updated.');
+  };
 
   const handleUrlScrape = async () => {
     if (!urlInput) return;
@@ -93,7 +215,10 @@ export default function Home() {
   };
 
   const saveRecipe = async () => {
+    if (!user) return;
+
     const { error } = await supabase.from('recipes').insert([{ 
+      user_id: user.id,
       title: recipe.title, 
       ingredients: recipe.ingredients, 
       directions: recipe.directions,
@@ -113,13 +238,13 @@ export default function Home() {
       ingredients: selectedRecipe.ingredients, 
       directions: selectedRecipe.directions,
       notes: selectedRecipe.notes || ''
-    }).eq('id', selectedRecipe.id);
+    }).eq('id', selectedRecipe.id).eq('user_id', user.id);
     if (!error) { setIsEditing(false); fetchVault(); alert("Vault Updated."); }
   };
 
   const deleteRecipe = async () => {
     if (confirm("BURN THIS RECIPE?")) {
-      const { error } = await supabase.from('recipes').delete().eq('id', selectedRecipe.id);
+      const { error } = await supabase.from('recipes').delete().eq('id', selectedRecipe.id).eq('user_id', user.id);
       if (!error) { setSelectedRecipe(null); fetchVault(); }
     }
   };
@@ -184,6 +309,78 @@ export default function Home() {
         <p className="text-[#FF4500] uppercase tracking-[0.4em] text-[7px] font-black italic mt-1">Pitmaster Intelligence</p>
       </div>
 
+      {authLoading ? (
+        <div className="flex flex-1 items-center justify-center text-gray-800 uppercase font-black text-[10px] tracking-[0.4em] animate-pulse">
+          Loading pit access
+        </div>
+      ) : !user ? (
+        <div className="w-full max-w-md mt-10 rounded-2xl border-2 border-gray-800 bg-[#141414] p-8 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_24px_70px_rgba(0,0,0,0.65)]">
+          <div className="mb-8 border-b border-gray-800 pb-5">
+            <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">
+              {authMode === 'signin' ? 'Sign In' : 'Create Account'}
+            </h2>
+            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-gray-600">
+              Your private recipe box
+            </p>
+          </div>
+
+          <form onSubmit={handleAuthSubmit} className="space-y-4">
+            <input
+              type="email"
+              value={authEmail}
+              onChange={(e) => setAuthEmail(e.target.value)}
+              placeholder="EMAIL"
+              className="w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-sm font-bold outline-none focus:border-[#FF4500]"
+              autoComplete="email"
+            />
+            <input
+              type="password"
+              value={authPassword}
+              onChange={(e) => setAuthPassword(e.target.value)}
+              placeholder="PASSWORD"
+              className="w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-sm font-bold outline-none focus:border-[#FF4500]"
+              autoComplete={authMode === 'signin' ? 'current-password' : 'new-password'}
+            />
+            <button type="submit" className="w-full rounded-xl bg-[#FF4500] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#E63E00]">
+              {authActionLoading ? 'Working...' : authMode === 'signin' ? 'Enter Recipe Box' : 'Create Recipe Box'}
+            </button>
+          </form>
+
+          <div className="mt-6 flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-widest">
+            <button onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')} className="text-gray-500 hover:text-white">
+              {authMode === 'signin' ? 'Create Account' : 'Sign In'}
+            </button>
+            <button onClick={sendPasswordReset} className="text-gray-500 hover:text-[#FF4500]">
+              Reset Password
+            </button>
+          </div>
+        </div>
+      ) : isPasswordRecovery ? (
+        <div className="w-full max-w-md mt-10 rounded-2xl border-2 border-gray-800 bg-[#141414] p-8 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_24px_70px_rgba(0,0,0,0.65)]">
+          <div className="mb-8 border-b border-gray-800 pb-5">
+            <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">
+              Reset Password
+            </h2>
+            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-gray-600">
+              Choose a new pit key
+            </p>
+          </div>
+
+          <form onSubmit={updatePassword} className="space-y-4">
+            <input
+              type="password"
+              value={newPassword}
+              onChange={(e) => setNewPassword(e.target.value)}
+              placeholder="NEW PASSWORD"
+              className="w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-sm font-bold outline-none focus:border-[#FF4500]"
+              autoComplete="new-password"
+            />
+            <button type="submit" className="w-full rounded-xl bg-[#FF4500] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#E63E00]">
+              Update Password
+            </button>
+          </form>
+        </div>
+      ) : (
       <div className="w-full max-w-6xl flex flex-col flex-1 overflow-hidden">
           
           <div className="flex justify-between items-center gap-4 mb-4 flex-shrink-0">
@@ -196,6 +393,15 @@ export default function Home() {
               </button>
               <button onClick={openImportForm} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'premade' || view === 'review' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
                 + Import Recipe
+              </button>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <div className="hidden max-w-[220px] truncate text-right text-[9px] font-black uppercase tracking-[0.2em] text-gray-600 md:block">
+                {user.email}
+              </div>
+              <button onClick={signOut} className="rounded-full border border-gray-800 bg-[#141414] px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 transition-all hover:border-[#FF4500] hover:text-white">
+                Sign Out
               </button>
             </div>
 
@@ -389,6 +595,7 @@ export default function Home() {
             </div>
           </div>
         </div>
+      )}
     </main>
   );
 }
