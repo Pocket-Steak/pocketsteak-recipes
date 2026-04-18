@@ -159,7 +159,7 @@ export default function Home() {
             </button>
             <button onClick={() => { setView('premade'); setShowEditor(false); }} className="p-8 bg-[#1A1A1A] border border-gray-800 rounded-2xl flex flex-col text-left gap-3 hover:border-[#FF4500] transition-all">
               <div className="flex flex-col">
-                <span className="text-[#FFFFFF] font-bold text-lg leading-none">Chef's Special</span>
+                <span className="text-[#FFFFFF] font-bold text-lg leading-none">Chef&apos;s Special</span>
                 <span className="text-[#FF4500] text-[9px] font-black uppercase tracking-tighter">Import from Web</span>
               </div>
               <p className="text-[#FF4500] text-[11px] leading-tight">Paste a recipe link and let the chef prepare it for you.</p>
@@ -198,16 +198,18 @@ export default function Home() {
             <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
               <div className="w-full md:w-1/4 flex flex-col gap-4 overflow-hidden">
                 <input placeholder="Search files..." className="bg-[#141414] border border-gray-800 p-3 rounded-lg outline-none focus:border-[#FF4500] text-sm" onChange={(e) => setSearchQuery(e.target.value)} />
-                <div className="flex-1 overflow-y-auto space-y-2 pr-2 custom-scrollbar">
-                  {filteredVault.map(item => (
-                    <div key={item.id} onClick={() => { setSelectedRecipe(item); setIsCookingMode(false); setIsEditing(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-transparent bg-[#141414] hover:bg-[#1A1A1A]'}`}>
-                      <h3 className="font-bold text-sm truncate uppercase tracking-tight">{item.title}</h3>
-                    </div>
-                  ))}
+                <div className="flex-1 min-h-0 rounded-2xl border border-gray-800 bg-[#101010] p-3 shadow-2xl overflow-hidden">
+                  <div className="h-full overflow-y-auto space-y-2 pr-2 custom-scrollbar">
+                    {filteredVault.map(item => (
+                      <div key={item.id} onClick={() => { setSelectedRecipe(item); setIsCookingMode(false); setIsEditing(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-transparent bg-[#141414] hover:bg-[#1A1A1A]'}`}>
+                        <h3 className="font-bold text-sm truncate uppercase tracking-tight">{item.title}</h3>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
-              <div className="flex-1 bg-[#141414] rounded-2xl border border-gray-800 flex flex-col overflow-hidden shadow-2xl relative">
+              <div className="flex-1 bg-[#141414] rounded-2xl border-2 border-gray-700 flex flex-col overflow-hidden shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_24px_70px_rgba(0,0,0,0.65)] relative">
                 {showRefHUD && (
                   <div className="absolute top-2 right-6 z-50 bg-black/98 border border-[#FF4500]/50 p-6 rounded-2xl shadow-2xl backdrop-blur-md w-[400px]">
                     <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
@@ -251,7 +253,7 @@ export default function Home() {
                       </div>
                     </div>
 
-                    <div className="flex-1 overflow-hidden p-6 relative">
+                    <div className="flex-1 min-h-0 overflow-hidden p-6 relative">
                       {isEditing ? (
                         <div className="absolute inset-6 flex flex-col gap-4">
                           <input value={selectedRecipe.title} onChange={(e) => setSelectedRecipe({...selectedRecipe, title: e.target.value})} className="bg-transparent border-b border-gray-800 p-2 text-2xl font-bold outline-none focus:border-[#FF4500]" />
@@ -286,33 +288,41 @@ export default function Home() {
                           </section>
                         </div>
                       ) : (
-                        <div className="grid grid-cols-2 h-full gap-8 overflow-hidden">
-                          <div className="flex flex-col h-full border-r border-gray-800 pr-6 overflow-hidden">
-                            <div className="flex justify-between items-center mb-6 flex-shrink-0">
-                                <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest">Ingredients</h4>
-                                <div className="flex gap-2 text-[10px] font-black uppercase">
-                                    <button onClick={copyCheckedItems} className="text-[#FF4500] hover:underline">Copy</button>
-                                    <span className="text-gray-800">/</span>
-                                    <button onClick={clearChecks} className="text-gray-500 hover:text-white">Clear</button>
-                                </div>
+                        <div className="h-full overflow-y-auto custom-scrollbar pr-2">
+                          <div className="grid grid-cols-2 gap-8 pb-8">
+                            <div className="flex flex-col min-h-[560px] border-r border-gray-800 pr-6 overflow-hidden">
+                              <div className="flex justify-between items-center mb-6 flex-shrink-0">
+                                  <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest">Ingredients</h4>
+                                  <div className="flex gap-2 text-[10px] font-black uppercase">
+                                      <button onClick={copyCheckedItems} className="text-[#FF4500] hover:underline">Copy</button>
+                                      <span className="text-gray-800">/</span>
+                                      <button onClick={clearChecks} className="text-gray-500 hover:text-white">Clear</button>
+                                  </div>
+                              </div>
+                              <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+                                {selectedRecipe.ingredients.split('\n').map((ing, i) => (
+                                  <div key={i} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
+                                      <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
+                                          {checkedIngredients[i] && <span className="text-[8px] font-bold text-white">✓</span>}
+                                      </div>
+                                      <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ing}</span>
+                                  </div>
+                                ))}
+                              </div>
                             </div>
-                            <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
-                              {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
-                                    <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
-                                        {checkedIngredients[i] && <span className="text-[8px] font-bold text-white">✓</span>}
-                                    </div>
-                                    <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ing}</span>
-                                </div>
-                              ))}
+                            <div className="flex flex-col min-h-[560px] pl-2 overflow-hidden">
+                              <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Directions</h4>
+                              <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar text-sm text-gray-400">
+                                {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
+                                  <div key={i} className="flex gap-3"><span className="text-[#FF4500] font-black italic">{i + 1}</span>{step}</div>
+                                ))}
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex flex-col h-full pl-2 overflow-hidden">
-                            <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Directions</h4>
-                            <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar text-sm text-gray-400">
-                              {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
-                                <div key={i} className="flex gap-3"><span className="text-[#FF4500] font-black italic">{i + 1}</span>{step}</div>
-                              ))}
+                            <div className="col-span-2 rounded-xl border border-gray-800 bg-[#0D0D0D] p-5">
+                              <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest mb-4">Notes</h4>
+                              <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 text-sm leading-relaxed text-gray-400 whitespace-pre-wrap">
+                                {selectedRecipe.notes?.trim() || 'No field notes yet.'}
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -328,7 +338,7 @@ export default function Home() {
             <div className="max-w-xl mx-auto w-full flex-1 overflow-y-auto custom-scrollbar pb-10">
               {view === 'premade' && !showEditor && (
                 <div className="p-10 border border-gray-800 rounded-3xl bg-[#141414] text-center mt-10 shadow-2xl">
-                  <h2 className="text-xl font-black text-[#FF4500] uppercase italic tracking-tighter mb-6">Chef's Special</h2>
+                  <h2 className="text-xl font-black text-[#FF4500] uppercase italic tracking-tighter mb-6">Chef&apos;s Special</h2>
                   <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="PASTE URL HERE" className="w-full bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 outline-none focus:border-[#FF4500] text-center font-bold mb-4" />
                   <button onClick={handleUrlScrape} className={`w-full p-4 bg-[#FF4500] text-white font-black rounded-xl ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? 'PREPPING...' : 'PREPARE RECIPE'}</button>
                 </div>
