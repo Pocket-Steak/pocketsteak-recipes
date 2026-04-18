@@ -193,7 +193,8 @@ export default function Home() {
     setIsProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke('scrape-recipe', { body: { url: urlInput } });
-      if (error) throw new Error(error.message);
+      if (error) throw error;
+      if (data?.error) throw new Error(data.error);
       setRecipe({ 
         title: data.title || "New Intel", 
         ingredients: Array.isArray(data.ingredients) ? data.ingredients.join('\n') : data.ingredients, 
@@ -202,7 +203,10 @@ export default function Home() {
       });
       setView('review');
       setShowEditor(true);
-    } catch (err) { alert("Snag in the pit."); } finally { setIsProcessing(false); setUrlInput(''); }
+    } catch (err) {
+      console.error('Recipe import failed:', err);
+      alert(`Unable to import recipe: ${err.message || 'Unknown scrape error'}`);
+    } finally { setIsProcessing(false); setUrlInput(''); }
   };
 
   const processButcherBlock = () => {
