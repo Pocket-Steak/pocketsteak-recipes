@@ -193,7 +193,13 @@ export default function Home() {
     setIsProcessing(true);
     try {
       const { data, error } = await supabase.functions.invoke('scrape-recipe', { body: { url: urlInput } });
-      if (error) throw error;
+      if (error) {
+        if (error.context?.json) {
+          const errorBody = await error.context.json();
+          throw new Error(errorBody.error || error.message);
+        }
+        throw error;
+      }
       if (data?.error) throw new Error(data.error);
       setRecipe({ 
         title: data.title || "New Intel", 
