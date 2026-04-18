@@ -78,6 +78,7 @@ export default function Home() {
         directions: Array.isArray(data.directions) ? data.directions.join('\n') : data.directions,
         notes: ''
       });
+      setView('review');
       setShowEditor(true);
     } catch (err) { alert("Snag in the pit."); } finally { setIsProcessing(false); setUrlInput(''); }
   };
@@ -99,6 +100,10 @@ export default function Home() {
       notes: recipe.notes,
       description: (recipe.ingredients || "").substring(0, 50) 
     }]);
+    if (error) {
+      alert(`Unable to save recipe: ${error.message}`);
+      return;
+    }
     if (!error) { setView('vault'); setShowEditor(false); setRecipe(emptyRecipe); fetchVault(); }
   };
 
@@ -189,7 +194,7 @@ export default function Home() {
               <button onClick={openScratchForm} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'scratch' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
                 + From Scratch
               </button>
-              <button onClick={openImportForm} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'premade' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
+              <button onClick={openImportForm} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'premade' || view === 'review' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
                 + Import Recipe
               </button>
             </div>
@@ -259,11 +264,11 @@ export default function Home() {
                       <button onClick={handleUrlScrape} className={`w-full p-4 bg-[#FF4500] text-white font-black rounded-xl ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? 'PREPPING...' : 'PREPARE RECIPE'}</button>
                     </div>
                   </div>
-                ) : (view === 'scratch' || (view === 'premade' && showEditor)) ? (
+                ) : (view === 'scratch' || view === 'review') ? (
                   <div className="h-full overflow-y-auto custom-scrollbar p-8">
                     <div className="max-w-2xl mx-auto p-8 border-2 border-gray-800 rounded-2xl bg-[#101010] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_18px_45px_rgba(0,0,0,0.45)] space-y-6">
                       <div className="flex justify-between items-center border-b border-gray-800 pb-4">
-                        <h2 className="text-xs font-black text-gray-600 uppercase tracking-widest">Recipe Intake Form</h2>
+                        <h2 className="text-xs font-black text-gray-600 uppercase tracking-widest">{view === 'review' ? 'Review Imported Recipe' : 'Recipe Intake Form'}</h2>
                         <button onClick={() => setShowButcherBlock(!showButcherBlock)} className="text-[9px] bg-gray-800 px-3 py-1 rounded-full text-gray-400 hover:text-white transition-all uppercase font-black tracking-widest">
                           {showButcherBlock ? "- Hide Butcher" : "+ Butcher Block"}
                         </button>
