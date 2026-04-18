@@ -197,11 +197,11 @@ export default function Home() {
           {view === 'vault' ? (
             <div className="flex flex-col md:flex-row gap-6 flex-1 overflow-hidden">
               <div className="w-full md:w-1/4 flex flex-col gap-4 overflow-hidden">
-                <input placeholder="Search files..." className="bg-[#141414] border border-gray-800 p-3 rounded-lg outline-none focus:border-[#FF4500] text-sm" onChange={(e) => setSearchQuery(e.target.value)} />
-                <div className="flex-1 min-h-0 rounded-2xl border border-gray-800 bg-[#101010] p-3 shadow-2xl overflow-hidden">
+                <input placeholder="Search files..." className="bg-[#141414] border-2 border-gray-800 p-3 rounded-lg outline-none focus:border-[#FF4500] text-sm shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)]" onChange={(e) => setSearchQuery(e.target.value)} />
+                <div className="flex-1 min-h-0 rounded-2xl border-2 border-gray-700 bg-[#101010] p-3 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_18px_45px_rgba(0,0,0,0.55)] overflow-hidden">
                   <div className="h-full overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     {filteredVault.map(item => (
-                      <div key={item.id} onClick={() => { setSelectedRecipe(item); setIsCookingMode(false); setIsEditing(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-transparent bg-[#141414] hover:bg-[#1A1A1A]'}`}>
+                      <div key={item.id} onClick={() => { setSelectedRecipe(item); setIsCookingMode(false); setIsEditing(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-gray-900 bg-[#141414] hover:border-gray-700 hover:bg-[#1A1A1A]'}`}>
                         <h3 className="font-bold text-sm truncate uppercase tracking-tight">{item.title}</h3>
                       </div>
                     ))}
@@ -288,10 +288,10 @@ export default function Home() {
                           </section>
                         </div>
                       ) : (
-                        <div className="h-full overflow-y-auto custom-scrollbar pr-2">
-                          <div className="grid grid-cols-2 gap-8 pb-8">
-                            <div className="flex flex-col min-h-[560px] border-r border-gray-800 pr-6 overflow-hidden">
-                              <div className="flex justify-between items-center mb-6 flex-shrink-0">
+                        <div className="h-full flex flex-col gap-6 overflow-hidden">
+                          <div className="grid grid-cols-2 gap-6 flex-1 min-h-0 overflow-hidden">
+                            <div className="flex flex-col min-h-0 rounded-xl border-2 border-gray-800 bg-[#0D0D0D] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.28)] overflow-hidden">
+                              <div className="flex justify-between items-center mb-5 flex-shrink-0">
                                   <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest">Ingredients</h4>
                                   <div className="flex gap-2 text-[10px] font-black uppercase">
                                       <button onClick={copyCheckedItems} className="text-[#FF4500] hover:underline">Copy</button>
@@ -299,7 +299,7 @@ export default function Home() {
                                       <button onClick={clearChecks} className="text-gray-500 hover:text-white">Clear</button>
                                   </div>
                               </div>
-                              <div className="flex-1 overflow-y-auto space-y-3 custom-scrollbar">
+                              <div className="flex-1 min-h-0 overflow-y-auto space-y-3 custom-scrollbar pr-2">
                                 {selectedRecipe.ingredients.split('\n').map((ing, i) => (
                                   <div key={i} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
                                       <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
@@ -310,19 +310,19 @@ export default function Home() {
                                 ))}
                               </div>
                             </div>
-                            <div className="flex flex-col min-h-[560px] pl-2 overflow-hidden">
-                              <h4 className="text-gray-600 font-black uppercase text-[10px] mb-6">Directions</h4>
-                              <div className="flex-1 overflow-y-auto space-y-4 custom-scrollbar text-sm text-gray-400">
+                            <div className="flex flex-col min-h-0 rounded-xl border-2 border-gray-800 bg-[#0D0D0D] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.28)] overflow-hidden">
+                              <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest mb-5 flex-shrink-0">Directions</h4>
+                              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 custom-scrollbar pr-2 text-sm text-gray-400">
                                 {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
                                   <div key={i} className="flex gap-3"><span className="text-[#FF4500] font-black italic">{i + 1}</span>{step}</div>
                                 ))}
                               </div>
                             </div>
-                            <div className="col-span-2 rounded-xl border border-gray-800 bg-[#0D0D0D] p-5">
-                              <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest mb-4">Notes</h4>
-                              <div className="max-h-48 overflow-y-auto custom-scrollbar pr-2 text-sm leading-relaxed text-gray-400 whitespace-pre-wrap">
-                                {selectedRecipe.notes?.trim() || 'No field notes yet.'}
-                              </div>
+                          </div>
+                          <div className="h-36 flex-shrink-0 rounded-xl border-2 border-gray-800 bg-[#0D0D0D] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.28)] overflow-hidden">
+                            <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest mb-4">Notes</h4>
+                            <div className="h-[calc(100%-1.75rem)] overflow-y-auto custom-scrollbar pr-2 text-sm leading-relaxed text-gray-400 whitespace-pre-wrap">
+                              {selectedRecipe.notes?.trim() || 'No field notes yet.'}
                             </div>
                           </div>
                         </div>
