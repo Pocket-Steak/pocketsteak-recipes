@@ -267,15 +267,6 @@ export default function Home() {
     setCheckedDirections({});
   };
 
-  const openRecipeBox = () => {
-    setView('vault');
-    setShowEditor(false);
-    setShowButcherBlock(false);
-    setIsCookingMode(false);
-    setIsEditing(false);
-    setShowRefHUD(false);
-  };
-
   const openScratchForm = () => {
     setRecipe(emptyRecipe);
     setSelectedRecipe(null);
@@ -385,14 +376,16 @@ export default function Home() {
           
           <div className="flex justify-between items-center gap-4 mb-4 flex-shrink-0">
             <div className="flex flex-wrap items-center gap-2">
-              <button onClick={openRecipeBox} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'vault' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
-                Recipe Box
+              <button onClick={openScratchForm} className={`min-h-14 px-5 py-2 border rounded-full uppercase transition-all shadow-lg ${view === 'scratch' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
+                <span className="block text-[9px] font-black tracking-[0.2em]">+ From Scratch</span>
+                <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Make your own recipe</span>
               </button>
-              <button onClick={openScratchForm} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'scratch' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
-                + From Scratch
+              <button onClick={openImportForm} className={`min-h-14 px-5 py-2 border rounded-full uppercase transition-all shadow-lg ${view === 'premade' || view === 'review' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
+                <span className="block text-[9px] font-black tracking-[0.2em]">+ Import Recipe</span>
               </button>
-              <button onClick={openImportForm} className={`px-5 py-2 border rounded-full font-black uppercase text-[9px] tracking-[0.2em] transition-all shadow-lg ${view === 'premade' || view === 'review' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
-                + Import Recipe
+              <button onClick={() => setShowRefHUD(!showRefHUD)} className={`min-h-14 max-w-[260px] px-5 py-2 border rounded-full uppercase transition-all shadow-lg ${showRefHUD ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
+                <span className="block text-[9px] font-black tracking-[0.2em]">Reference</span>
+                <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Cooking temps and measurements</span>
               </button>
             </div>
 
@@ -499,7 +492,6 @@ export default function Home() {
                     <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A] flex-shrink-0">
                       <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
                       <div className="flex gap-2">
-                        <button onClick={() => setShowRefHUD(!showRefHUD)} className="px-4 py-1.5 rounded-full font-black text-[9px] border border-gray-700 text-gray-500 hover:text-[#FF4500]">Reference</button>
                         {!isEditing && (
                           <button onClick={() => setIsCookingMode(!isCookingMode)} className={`px-6 py-1.5 rounded-full font-black text-[9px] border ${isCookingMode ? 'bg-[#FF4500] border-[#FF4500] text-white' : 'border-gray-700 text-gray-500 hover:text-white'}`}>{isCookingMode ? 'Exit' : 'Cook'}</button>
                         )}
