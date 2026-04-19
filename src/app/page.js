@@ -489,9 +489,18 @@ export default function Home() {
                   </div>
                 ) : selectedRecipe ? (
                   <>
-                    <div className="p-6 border-b border-gray-800 flex justify-between items-center bg-[#1A1A1A] flex-shrink-0">
-                      <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
-                      <div className="flex gap-2">
+                    <div className="p-6 border-b border-gray-800 flex justify-between items-center gap-4 bg-[#1A1A1A] flex-shrink-0">
+                      {isEditing ? (
+                        <input
+                          aria-label="Recipe title"
+                          value={selectedRecipe.title || ''}
+                          onChange={(e) => setSelectedRecipe({...selectedRecipe, title: e.target.value})}
+                          className="min-w-0 flex-1 bg-[#0D0D0D] border border-gray-800 rounded-xl px-4 py-3 text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none outline-none focus:border-[#FF4500]"
+                        />
+                      ) : (
+                        <h2 className="min-w-0 flex-1 text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">{selectedRecipe.title}</h2>
+                      )}
+                      <div className="flex flex-shrink-0 gap-2">
                         {!isEditing && (
                           <button onClick={() => setIsCookingMode(!isCookingMode)} className={`px-6 py-1.5 rounded-full font-black text-[9px] border ${isCookingMode ? 'bg-[#FF4500] border-[#FF4500] text-white' : 'border-gray-700 text-gray-500 hover:text-white'}`}>{isCookingMode ? 'Exit' : 'Cook'}</button>
                         )}
@@ -507,7 +516,6 @@ export default function Home() {
                     <div className="flex-1 min-h-0 overflow-hidden p-6 relative">
                       {isEditing ? (
                         <div className="absolute inset-6 flex flex-col gap-4">
-                          <input value={selectedRecipe.title} onChange={(e) => setSelectedRecipe({...selectedRecipe, title: e.target.value})} className="bg-transparent border-b border-gray-800 p-2 text-2xl font-bold outline-none focus:border-[#FF4500]" />
                           <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
                             <textarea value={selectedRecipe.ingredients} onChange={(e) => setSelectedRecipe({...selectedRecipe, ingredients: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
                             <textarea value={selectedRecipe.directions} onChange={(e) => setSelectedRecipe({...selectedRecipe, directions: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
