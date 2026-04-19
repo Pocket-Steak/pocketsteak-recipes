@@ -298,9 +298,11 @@ export default function Home() {
       <div className="mb-4 text-center flex flex-col items-center flex-shrink-0">
         <div className="flex items-center gap-4">
           <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-16 w-auto" />
-          <h1 className="text-3xl font-black tracking-tighter text-[#FF4500] italic uppercase leading-none">PocketSteak</h1>
+          <div className="flex flex-col items-center">
+            <h1 className="text-3xl font-black tracking-tighter text-[#FF4500] italic uppercase leading-none">PocketSteak</h1>
+            <p className="text-[#FF4500] uppercase tracking-[0.4em] text-[7px] font-black italic mt-0.5">Pitmaster Intelligence</p>
+          </div>
         </div>
-        <p className="text-[#FF4500] uppercase tracking-[0.4em] text-[7px] font-black italic mt-1">Pitmaster Intelligence</p>
       </div>
 
       {authLoading ? (
