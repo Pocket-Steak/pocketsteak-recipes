@@ -384,6 +384,7 @@ export default function Home() {
               </button>
               <button onClick={openImportForm} className={`min-h-14 px-5 py-2 border rounded-full uppercase transition-all shadow-lg ${view === 'premade' || view === 'review' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
                 <span className="block text-[9px] font-black tracking-[0.2em]">+ Import Recipe</span>
+                <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Copy URL from web</span>
               </button>
               <button onClick={() => setShowRefHUD(!showRefHUD)} className={`min-h-14 max-w-[260px] px-5 py-2 border rounded-full uppercase transition-all shadow-lg ${showRefHUD ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
                 <span className="block text-[9px] font-black tracking-[0.2em]">Reference</span>
