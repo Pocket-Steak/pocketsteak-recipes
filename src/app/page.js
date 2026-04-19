@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { createClient } from '@supabase/supabase-js';
 
 const emptyRecipe = { title: '', ingredients: '', directions: '', notes: '' };
@@ -9,6 +9,143 @@ const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
   process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 );
+
+const COMMON_INGREDIENT_WORDS = new Set([
+  'a', 'an', 'and', 'as', 'at', 'about', 'all', 'by', 'for', 'from', 'in', 'into',
+  'of', 'on', 'or', 'per', 'plus', 'the', 'to', 'with',
+  'cup', 'cups', 'tbsp', 'tablespoon', 'tablespoons', 'tbs', 'tsp', 'teaspoon',
+  'teaspoons', 'lb', 'lbs', 'pound', 'pounds', 'oz', 'ounce', 'ounces', 'g',
+  'gram', 'grams', 'kg', 'kilogram', 'kilograms', 'ml', 'milliliter',
+  'milliliters', 'l', 'liter', 'liters', 'pinch', 'pinches', 'dash', 'dashes',
+  'can', 'cans', 'jar', 'jars', 'package', 'packages', 'packet', 'packets',
+  'stick', 'sticks', 'slice', 'slices', 'clove', 'cloves', 'bunch', 'bunches',
+  'piece', 'pieces', 'whole', 'small', 'medium', 'large', 'extra',
+  'fresh', 'dried', 'ground', 'kosher', 'black', 'white', 'red', 'green',
+  'yellow', 'chopped', 'minced', 'diced', 'sliced', 'crushed', 'grated',
+  'shredded', 'melted', 'softened', 'cold', 'room', 'temperature', 'divided',
+  'optional', 'needed', 'serving', 'serve', 'thinly', 'finely', 'coarsely',
+  'packed', 'light', 'dark', 'unsalted', 'salted', 'purpose',
+]);
+
+const FRACTION_REPLACEMENTS = {
+  '\u00bc': ' 1/4 ',
+  '\u00bd': ' 1/2 ',
+  '\u00be': ' 3/4 ',
+  '\u2153': ' 1/3 ',
+  '\u2154': ' 2/3 ',
+  '\u215b': ' 1/8 ',
+  '\u215c': ' 3/8 ',
+  '\u215d': ' 5/8 ',
+  '\u215e': ' 7/8 ',
+};
+
+const splitRecipeLines = (value = '') =>
+  String(value)
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+
+const cleanDirectionLine = (line) =>
+  line.replace(/^\s*(?:step\s*)?\d+\s*[.)-]\s*/i, '').trim();
+
+const splitDirectionSteps = (value = '') =>
+  splitRecipeLines(value)
+    .map(cleanDirectionLine)
+    .filter(Boolean);
+
+const normalizeRecipeText = (value = '') =>
+  String(value)
+    .toLowerCase()
+    .replace(/[\u00bc\u00bd\u00be\u2153\u2154\u215b\u215c\u215d\u215e]/g, (char) => FRACTION_REPLACEMENTS[char] || ' ')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+const extractIngredientTokens = (ingredientLine) => {
+  const coreName = String(ingredientLine)
+    .replace(/\([^)]*\)/g, ' ')
+    .split(/[,;]/)[0];
+
+  return normalizeRecipeText(coreName)
+    .split(' ')
+    .filter((token) => token && !COMMON_INGREDIENT_WORDS.has(token) && !/^\d+$/.test(token));
+};
+
+const getIngredientTerms = (ingredientLine) => {
+  const tokens = extractIngredientTokens(ingredientLine);
+  const terms = new Set();
+
+  if (tokens.length > 1) terms.add(tokens.join(' '));
+  if (tokens.length > 2) terms.add(tokens.slice(-2).join(' '));
+  tokens.forEach((token) => {
+    if (token.length > 2) terms.add(token);
+  });
+
+  return [...terms].sort((a, b) => b.length - a.length);
+};
+
+const replaceLastWord = (term, getReplacement) => {
+  const words = term.split(' ');
+  const lastWord = words[words.length - 1];
+  words[words.length - 1] = getReplacement(lastWord);
+  return words.join(' ');
+};
+
+const singularize = (word) => {
+  if (word.endsWith('ies') && word.length > 4) return `${word.slice(0, -3)}y`;
+  if (word.endsWith('es') && word.length > 4) return word.slice(0, -2);
+  if (word.endsWith('s') && word.length > 3) return word.slice(0, -1);
+  return word;
+};
+
+const pluralize = (word) => {
+  if (word.endsWith('s')) return word;
+  if (word.endsWith('y') && word.length > 3) return `${word.slice(0, -1)}ies`;
+  return `${word}s`;
+};
+
+const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+const stepIncludesTerm = (normalizedStep, term) => {
+  const variants = new Set([
+    term,
+    replaceLastWord(term, singularize),
+    replaceLastWord(term, pluralize),
+  ]);
+
+  return [...variants].some((variant) => {
+    const pattern = variant.split(/\s+/).map(escapeRegExp).join('\\s+');
+    return new RegExp(`\\b${pattern}\\b`).test(normalizedStep);
+  });
+};
+
+const buildIngredientRefs = (ingredients = '') =>
+  splitRecipeLines(ingredients).map((line) => ({
+    line,
+    terms: getIngredientTerms(line),
+  }));
+
+const getStepIngredientRefs = (step, ingredientRefs) => {
+  const normalizedStep = normalizeRecipeText(step);
+
+  return ingredientRefs
+    .filter((ingredient) => ingredient.terms.some((term) => stepIncludesTerm(normalizedStep, term)))
+    .map((ingredient) => ingredient.line);
+};
+
+const formatScrapedList = (value) => {
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === 'string') return item;
+        return item?.step || item?.direction || item?.text || '';
+      })
+      .filter(Boolean)
+      .join('\n');
+  }
+
+  return value || '';
+};
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -194,8 +331,8 @@ export default function Home() {
       if (data?.error) throw new Error(data.error);
       setRecipe({ 
         title: data.title || "New Intel", 
-        ingredients: Array.isArray(data.ingredients) ? data.ingredients.join('\n') : data.ingredients, 
-        directions: Array.isArray(data.directions) ? data.directions.join('\n') : data.directions,
+        ingredients: formatScrapedList(data.ingredients), 
+        directions: formatScrapedList(data.directions),
         notes: ''
       });
       setView('review');
@@ -242,7 +379,7 @@ export default function Home() {
   };
 
   const copyCheckedItems = () => {
-    const list = selectedRecipe.ingredients.split('\n')
+    const list = splitRecipeLines(selectedRecipe.ingredients)
       .filter((_, index) => checkedIngredients[index])
       .join('\n');
     if (list) {
@@ -278,6 +415,8 @@ export default function Home() {
   };
 
   const filteredVault = vaultItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const selectedIngredientRefs = useMemo(() => buildIngredientRefs(selectedRecipe?.ingredients), [selectedRecipe?.ingredients]);
+  const selectedDirectionSteps = useMemo(() => splitDirectionSteps(selectedRecipe?.directions), [selectedRecipe?.directions]);
 
   return (
     <main className="flex h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans overflow-hidden">
@@ -510,8 +649,8 @@ export default function Home() {
                       {isEditing ? (
                         <div className="absolute inset-6 flex flex-col gap-4">
                           <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
-                            <textarea value={selectedRecipe.ingredients} onChange={(e) => setSelectedRecipe({...selectedRecipe, ingredients: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
-                            <textarea value={selectedRecipe.directions} onChange={(e) => setSelectedRecipe({...selectedRecipe, directions: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
+                            <textarea value={selectedRecipe.ingredients || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, ingredients: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
+                            <textarea value={selectedRecipe.directions || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, directions: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
                           </div>
                           <textarea value={selectedRecipe.notes || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, notes: e.target.value})} placeholder="NOTES" className="w-full h-32 flex-shrink-0 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
                           <button onClick={updateRecipe} className="w-full p-4 bg-[#FF4500] text-white font-black uppercase tracking-widest rounded-xl hover:bg-[#E63E00] transition-all">Update Cookbook</button>
@@ -521,10 +660,10 @@ export default function Home() {
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-xs mb-4">Prep Checklist</h4>
                             <div className="space-y-3">
-                              {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                <div key={i} onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})} className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer border transition-all ${checkedIngredients[i] ? 'bg-black opacity-10 border-transparent' : 'bg-[#1A1A1A] border-gray-800'}`}>
+                              {selectedIngredientRefs.map((ingredient, i) => (
+                                <div key={`${i}-${ingredient.line}`} onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})} className={`flex items-center gap-4 p-4 rounded-xl cursor-pointer border transition-all ${checkedIngredients[i] ? 'bg-black opacity-10 border-transparent' : 'bg-[#1A1A1A] border-gray-800'}`}>
                                   <div className={`w-6 h-6 rounded border-2 flex items-center justify-center ${checkedIngredients[i] ? 'bg-emerald-500 border-emerald-500' : 'border-gray-600'}`}>{checkedIngredients[i] && '✓'}</div>
-                                  <span className="text-lg">{ing}</span>
+                                  <span className="text-lg">{ingredient.line}</span>
                                 </div>
                               ))}
                             </div>
@@ -532,11 +671,22 @@ export default function Home() {
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-xs mb-4">The Process</h4>
                             <div className="space-y-4">
-                              {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
-                                <div key={i} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
-                                  <p className="text-lg leading-relaxed">{step}</p>
-                                </div>
-                              ))}
+                              {selectedDirectionSteps.map((step, i) => {
+                                const stepIngredients = getStepIngredientRefs(step, selectedIngredientRefs);
+
+                                return (
+                                  <div key={`${i}-${step}`} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
+                                    <p className="text-lg leading-relaxed">{step}</p>
+                                    {stepIngredients.length > 0 && (
+                                      <div className="mt-4 space-y-1 border-t border-gray-800 pt-3">
+                                        {stepIngredients.map((ingredient) => (
+                                          <p key={ingredient} className="text-xs font-bold leading-relaxed text-[#FF4500]/85">{ingredient}</p>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                );
+                              })}
                             </div>
                           </section>
                         </div>
@@ -553,12 +703,12 @@ export default function Home() {
                                   </div>
                               </div>
                               <div className="flex-1 min-h-0 overflow-y-auto space-y-3 custom-scrollbar pr-2">
-                                {selectedRecipe.ingredients.split('\n').map((ing, i) => (
-                                  <div key={i} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
+                                {selectedIngredientRefs.map((ingredient, i) => (
+                                  <div key={`${i}-${ingredient.line}`} className="flex items-start gap-3 cursor-pointer group" onClick={() => setCheckedIngredients({...checkedIngredients, [i]: !checkedIngredients[i]})}>
                                       <div className={`mt-0.5 w-4 h-4 flex-shrink-0 border rounded transition-all flex items-center justify-center ${checkedIngredients[i] ? 'bg-[#FF4500] border-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
                                           {checkedIngredients[i] && <span className="text-[8px] font-bold text-white">✓</span>}
                                       </div>
-                                      <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ing}</span>
+                                      <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'text-gray-700 line-through italic' : 'text-gray-300'}`}>{ingredient.line}</span>
                                   </div>
                                 ))}
                               </div>
@@ -566,9 +716,25 @@ export default function Home() {
                             <div className="flex flex-col min-h-0 rounded-xl border-2 border-gray-800 bg-[#0D0D0D] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.28)] overflow-hidden">
                               <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest mb-5 flex-shrink-0">Directions</h4>
                               <div className="flex-1 min-h-0 overflow-y-auto space-y-4 custom-scrollbar pr-2 text-sm text-gray-400">
-                                {selectedRecipe.directions.split('\n').filter(d => d.trim()).map((step, i) => (
-                                  <div key={i} className="flex gap-3"><span className="text-[#FF4500] font-black italic">{i + 1}</span>{step}</div>
-                                ))}
+                                {selectedDirectionSteps.map((step, i) => {
+                                  const stepIngredients = getStepIngredientRefs(step, selectedIngredientRefs);
+
+                                  return (
+                                    <div key={`${i}-${step}`} className="flex gap-3">
+                                      <span className="text-[#FF4500] font-black italic">{i + 1}</span>
+                                      <div className="min-w-0">
+                                        <p>{step}</p>
+                                        {stepIngredients.length > 0 && (
+                                          <div className="mt-2 space-y-1">
+                                            {stepIngredients.map((ingredient) => (
+                                              <p key={ingredient} className="text-xs font-bold leading-relaxed text-[#FF4500]/80">{ingredient}</p>
+                                            ))}
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
                               </div>
                             </div>
                           </div>

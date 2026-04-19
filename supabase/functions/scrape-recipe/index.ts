@@ -22,9 +22,11 @@ async function getRecipeFromAI(content: string, openAiKey: string) {
           role: 'system', 
           content: `You are a professional recipe extractor. 
           1. Extract the recipe to a JSON object with keys: "title", "ingredients", and "directions".
-          2. Format ingredients as a clean list with one item per line. 
+          2. Format ingredients as a clean list with one item per line, keeping the full measurement and ingredient name together.
           3. DIRECTIONS MUST BE A LIST: Break directions into short, single-action steps. No long paragraphs.
-          4. If ingredients are missing, return ingredients: "NOT_FOUND".` 
+          4. Do not number direction strings. The app numbers them automatically.
+          5. When a step uses an ingredient, use the concrete ingredient name from the ingredients list instead of pronouns like "it" or "mixture".
+          6. If ingredients are missing, return ingredients: "NOT_FOUND".` 
         },
         { role: 'user', content: `TEXT CONTENT: ${content.slice(0, 30000)}` }
       ],
