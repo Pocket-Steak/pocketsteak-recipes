@@ -434,25 +434,36 @@ export default function Home() {
 
               <div className="flex-1 bg-[#141414] rounded-2xl border-2 border-gray-700 flex flex-col overflow-hidden shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_24px_70px_rgba(0,0,0,0.65)] relative">
                 {showRefHUD && (
-                  <div className="absolute top-2 right-6 z-50 bg-black/98 border border-[#FF4500]/50 p-6 rounded-2xl shadow-2xl backdrop-blur-md w-[400px]">
-                    <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
-                      <span className="text-[#FF4500] font-black uppercase text-[10px] tracking-widest">Pitmaster Ref Intel</span>
-                      <button onClick={() => setShowRefHUD(false)} className="text-gray-600 hover:text-white">✕</button>
-                    </div>
-                    <div className="grid grid-cols-2 gap-6 text-[10px] font-mono">
-                      <div className="space-y-4">
-                        <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Internal Temps</p>
-                        <div className="flex justify-between"><span>Rare</span><span className="text-[#FF4500]">125°F</span></div>
-                        <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#FF4500]">135°F</span></div>
-                        <div className="flex justify-between"><span>Medium</span><span className="text-[#FF4500]">145°F</span></div>
-                        <div className="flex justify-between"><span>Chicken</span><span className="text-[#FF4500]">165°F</span></div>
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-6 backdrop-blur-sm"
+                    onClick={() => setShowRefHUD(false)}
+                  >
+                    <div
+                      role="dialog"
+                      aria-modal="true"
+                      aria-label="Pitmaster reference"
+                      className="w-full max-w-xl rounded-2xl border border-[#FF4500]/50 bg-black/98 p-6 shadow-2xl"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <div className="flex justify-between items-center mb-4 border-b border-gray-800 pb-2">
+                        <span className="text-[#FF4500] font-black uppercase text-[10px] tracking-widest">Pitmaster Ref Intel</span>
+                        <button onClick={() => setShowRefHUD(false)} className="text-gray-600 hover:text-white">✕</button>
                       </div>
-                      <div className="space-y-4">
-                        <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Conversions</p>
-                        <div className="flex justify-between"><span>1 Cup</span><span>8 oz</span></div>
-                        <div className="flex justify-between"><span>1/2 Cup</span><span>4 oz</span></div>
-                        <div className="flex justify-between"><span>1 Tbsp</span><span>3 tsp</span></div>
-                        <div className="flex justify-between"><span>Pint</span><span>16 oz</span></div>
+                      <div className="grid grid-cols-2 gap-6 text-[10px] font-mono">
+                        <div className="space-y-4">
+                          <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Internal Temps</p>
+                          <div className="flex justify-between"><span>Rare</span><span className="text-[#FF4500]">125°F</span></div>
+                          <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#FF4500]">135°F</span></div>
+                          <div className="flex justify-between"><span>Medium</span><span className="text-[#FF4500]">145°F</span></div>
+                          <div className="flex justify-between"><span>Chicken</span><span className="text-[#FF4500]">165°F</span></div>
+                        </div>
+                        <div className="space-y-4">
+                          <p className="text-[9px] text-gray-500 uppercase font-black border-b border-gray-900">Conversions</p>
+                          <div className="flex justify-between"><span>1 Cup</span><span>8 oz</span></div>
+                          <div className="flex justify-between"><span>1/2 Cup</span><span>4 oz</span></div>
+                          <div className="flex justify-between"><span>1 Tbsp</span><span>3 tsp</span></div>
+                          <div className="flex justify-between"><span>Pint</span><span>16 oz</span></div>
+                        </div>
                       </div>
                     </div>
                   </div>
