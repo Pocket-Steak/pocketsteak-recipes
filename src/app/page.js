@@ -296,11 +296,11 @@ export default function Home() {
     <main className="flex h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans overflow-hidden">
       
       <div className="mb-4 text-center flex flex-col items-center flex-shrink-0">
-        <div className="flex items-center gap-4">
-          <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-10 w-auto" />
-          <h1 className="text-3xl font-black tracking-tighter text-[#FF4500] italic uppercase leading-none">PocketSteak</h1>
+        <div className="flex items-center gap-5">
+          <img src="/assets/pocket_steak_logo.png" alt="Logo" className="h-16 w-auto" />
+          <h1 className="text-5xl font-black tracking-tighter text-[#FF4500] italic uppercase leading-none">PocketSteak</h1>
         </div>
-        <p className="text-[#FF4500] uppercase tracking-[0.4em] text-[7px] font-black italic mt-1">Pitmaster Intelligence</p>
+        <p className="text-[#FF4500] uppercase tracking-[0.4em] text-[9px] font-black italic mt-2">Pitmaster Intelligence</p>
       </div>
 
       {authLoading ? (
