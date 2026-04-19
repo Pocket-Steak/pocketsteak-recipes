@@ -14,7 +14,6 @@ export default function Home() {
   const [user, setUser] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [authActionLoading, setAuthActionLoading] = useState(false);
-  const [authMode, setAuthMode] = useState('signin');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -132,19 +131,13 @@ export default function Home() {
     if (!authEmail || !authPassword) return;
 
     setAuthActionLoading(true);
-    const { error } = authMode === 'signin'
-      ? await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword })
-      : await supabase.auth.signUp({ email: authEmail, password: authPassword });
+    const { error } = await supabase.auth.signInWithPassword({ email: authEmail, password: authPassword });
 
     setAuthActionLoading(false);
 
     if (error) {
       alert(error.message);
       return;
-    }
-
-    if (authMode === 'signup') {
-      alert('Account created. Check your email if confirmation is enabled.');
     }
   };
 
@@ -327,7 +320,7 @@ export default function Home() {
         <div className="w-full max-w-md mt-10 rounded-2xl border-2 border-gray-800 bg-[#141414] p-8 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_24px_70px_rgba(0,0,0,0.65)]">
           <div className="mb-8 border-b border-gray-800 pb-5">
             <h2 className="text-2xl font-black text-[#FF4500] uppercase italic tracking-tighter leading-none">
-              {authMode === 'signin' ? 'Sign In' : 'Create Account'}
+              Sign In
             </h2>
             <p className="mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-gray-600">
               Your private recipe box
@@ -349,17 +342,14 @@ export default function Home() {
               onChange={(e) => setAuthPassword(e.target.value)}
               placeholder="PASSWORD"
               className="w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-sm font-bold outline-none focus:border-[#FF4500]"
-              autoComplete={authMode === 'signin' ? 'current-password' : 'new-password'}
+              autoComplete="current-password"
             />
             <button type="submit" className="w-full rounded-xl bg-[#FF4500] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#E63E00]">
-              {authActionLoading ? 'Working...' : authMode === 'signin' ? 'Enter Recipe Box' : 'Create Recipe Box'}
+              {authActionLoading ? 'Working...' : 'Enter Recipe Box'}
             </button>
           </form>
 
-          <div className="mt-6 flex items-center justify-between gap-3 text-[10px] font-black uppercase tracking-widest">
-            <button onClick={() => setAuthMode(authMode === 'signin' ? 'signup' : 'signin')} className="text-gray-500 hover:text-white">
-              {authMode === 'signin' ? 'Create Account' : 'Sign In'}
-            </button>
+          <div className="mt-6 flex justify-end text-[10px] font-black uppercase tracking-widest">
             <button onClick={sendPasswordReset} className="text-gray-500 hover:text-[#FF4500]">
               Reset Password
             </button>
