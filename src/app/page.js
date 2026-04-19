@@ -27,6 +27,11 @@ const COMMON_INGREDIENT_WORDS = new Set([
   'packed', 'light', 'dark', 'unsalted', 'salted', 'purpose',
 ]);
 
+const WEAK_INGREDIENT_WORDS = new Set([
+  'batter', 'cheese', 'crust', 'dough', 'dressing', 'filling', 'glaze', 'marinade',
+  'mix', 'mixture', 'oil', 'sauce', 'seasoning',
+]);
+
 const FRACTION_REPLACEMENTS = {
   '\u00bc': ' 1/4 ',
   '\u00bd': ' 1/2 ',
@@ -78,7 +83,7 @@ const getIngredientTerms = (ingredientLine) => {
   if (tokens.length > 1) terms.add(tokens.join(' '));
   if (tokens.length > 2) terms.add(tokens.slice(-2).join(' '));
   tokens.forEach((token) => {
-    if (token.length > 2) terms.add(token);
+    if (token.length > 2 && !WEAK_INGREDIENT_WORDS.has(token)) terms.add(token);
   });
 
   return [...terms].sort((a, b) => b.length - a.length);
@@ -119,19 +124,59 @@ const stepIncludesTerm = (normalizedStep, term) => {
   });
 };
 
+const getWordVariants = (word) => new Set([word, singularize(word), pluralize(word)]);
+
+const getStepTokens = (step) => new Set(normalizeRecipeText(step).split(' ').filter(Boolean));
+
+const tokenAppearsInStep = (token, stepTokens) =>
+  [...getWordVariants(token)].some((variant) => stepTokens.has(variant));
+
+const getIngredientMatchScore = (normalizedStep, stepTokens, ingredient) => {
+  if (ingredient.terms.some((term) => stepIncludesTerm(normalizedStep, term))) {
+    return 100 + Math.max(...ingredient.terms.map((term) => term.length));
+  }
+
+  const strongTokens = ingredient.tokens.filter((token) => token.length > 2 && !WEAK_INGREDIENT_WORDS.has(token));
+  const matchedTokens = strongTokens.filter((token) => tokenAppearsInStep(token, stepTokens));
+
+  if (strongTokens.length === 0 || matchedTokens.length === 0) return 0;
+  if (strongTokens.length === 1) return matchedTokens[0].length > 3 ? 20 : 0;
+  if (matchedTokens.length >= Math.min(2, strongTokens.length)) return 50 + matchedTokens.join('').length;
+  if (matchedTokens[0].length >= 7) return 30 + matchedTokens[0].length;
+
+  return 0;
+};
+
 const buildIngredientRefs = (ingredients = '') =>
-  splitRecipeLines(ingredients).map((line) => ({
-    line,
-    terms: getIngredientTerms(line),
-  }));
+  splitRecipeLines(ingredients).map((line) => {
+    const tokens = extractIngredientTokens(line);
+
+    return {
+      line,
+      terms: getIngredientTerms(line),
+      tokens,
+    };
+  });
 
 const getStepIngredientRefs = (step, ingredientRefs) => {
   const normalizedStep = normalizeRecipeText(step);
+  const stepTokens = getStepTokens(step);
 
   return ingredientRefs
-    .filter((ingredient) => ingredient.terms.some((term) => stepIncludesTerm(normalizedStep, term)))
+    .map((ingredient) => ({
+      ...ingredient,
+      score: getIngredientMatchScore(normalizedStep, stepTokens, ingredient),
+    }))
+    .filter((ingredient) => ingredient.score > 0)
+    .sort((a, b) => b.score - a.score)
     .map((ingredient) => ingredient.line);
 };
+
+const buildDirectionRows = (directions = '', ingredientRefs = []) =>
+  splitDirectionSteps(directions).map((step) => ({
+    step,
+    ingredients: getStepIngredientRefs(step, ingredientRefs),
+  }));
 
 const formatScrapedList = (value) => {
   if (Array.isArray(value)) {
@@ -416,7 +461,10 @@ export default function Home() {
 
   const filteredVault = vaultItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
   const selectedIngredientRefs = useMemo(() => buildIngredientRefs(selectedRecipe?.ingredients), [selectedRecipe?.ingredients]);
-  const selectedDirectionSteps = useMemo(() => splitDirectionSteps(selectedRecipe?.directions), [selectedRecipe?.directions]);
+  const selectedDirectionRows = useMemo(
+    () => buildDirectionRows(selectedRecipe?.directions, selectedIngredientRefs),
+    [selectedRecipe?.directions, selectedIngredientRefs]
+  );
 
   return (
     <main className="flex h-screen flex-col items-center justify-start bg-[#0D0D0D] text-white p-6 font-sans overflow-hidden">
@@ -671,16 +719,15 @@ export default function Home() {
                           <section>
                             <h4 className="text-[#FF4500] font-black uppercase text-xs mb-4">The Process</h4>
                             <div className="space-y-4">
-                              {selectedDirectionSteps.map((step, i) => {
-                                const stepIngredients = getStepIngredientRefs(step, selectedIngredientRefs);
-
+                              {selectedDirectionRows.map(({ step, ingredients }, i) => {
                                 return (
                                   <div key={`${i}-${step}`} onClick={() => setCheckedDirections({...checkedDirections, [i]: !checkedDirections[i]})} className={`p-6 rounded-2xl border-l-4 transition-all cursor-pointer ${checkedDirections[i] ? 'bg-black opacity-10 border-gray-900' : 'bg-[#1A1A1A] border-[#FF4500]'}`}>
                                     <p className="text-lg leading-relaxed">{step}</p>
-                                    {stepIngredients.length > 0 && (
-                                      <div className="mt-4 space-y-1 border-t border-gray-800 pt-3">
-                                        {stepIngredients.map((ingredient) => (
-                                          <p key={ingredient} className="text-xs font-bold leading-relaxed text-[#FF4500]/85">{ingredient}</p>
+                                    {ingredients.length > 0 && (
+                                      <div className="mt-4 space-y-2 border-t border-gray-800 pt-3">
+                                        <p className="text-[9px] font-black uppercase tracking-[0.18em] text-gray-600">Uses</p>
+                                        {ingredients.map((ingredient) => (
+                                          <p key={ingredient} className="text-sm font-black leading-relaxed text-[#FF4500]">{ingredient}</p>
                                         ))}
                                       </div>
                                     )}
@@ -716,18 +763,17 @@ export default function Home() {
                             <div className="flex flex-col min-h-0 rounded-xl border-2 border-gray-800 bg-[#0D0D0D] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.28)] overflow-hidden">
                               <h4 className="text-gray-600 font-black uppercase text-[10px] tracking-widest mb-5 flex-shrink-0">Directions</h4>
                               <div className="flex-1 min-h-0 overflow-y-auto space-y-4 custom-scrollbar pr-2 text-sm text-gray-400">
-                                {selectedDirectionSteps.map((step, i) => {
-                                  const stepIngredients = getStepIngredientRefs(step, selectedIngredientRefs);
-
+                                {selectedDirectionRows.map(({ step, ingredients }, i) => {
                                   return (
                                     <div key={`${i}-${step}`} className="flex gap-3">
                                       <span className="text-[#FF4500] font-black italic">{i + 1}</span>
                                       <div className="min-w-0">
                                         <p>{step}</p>
-                                        {stepIngredients.length > 0 && (
-                                          <div className="mt-2 space-y-1">
-                                            {stepIngredients.map((ingredient) => (
-                                              <p key={ingredient} className="text-xs font-bold leading-relaxed text-[#FF4500]/80">{ingredient}</p>
+                                        {ingredients.length > 0 && (
+                                          <div className="mt-2 space-y-1 border-l border-[#FF4500]/35 pl-3">
+                                            <p className="text-[8px] font-black uppercase tracking-[0.18em] text-gray-600">Uses</p>
+                                            {ingredients.map((ingredient) => (
+                                              <p key={ingredient} className="text-xs font-black leading-relaxed text-[#FF4500]">{ingredient}</p>
                                             ))}
                                           </div>
                                         )}
