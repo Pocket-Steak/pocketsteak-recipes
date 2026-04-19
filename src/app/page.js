@@ -447,7 +447,7 @@ export default function Home() {
   };
 
   const deleteRecipe = async () => {
-    if (confirm("BURN THIS RECIPE?")) {
+    if (confirm("Do you want to burn (delete) this recipe?")) {
       const { error } = await supabase.from('recipes').delete().eq('id', selectedRecipe.id).eq('user_id', user.id);
       if (!error) { setSelectedRecipe(null); fetchVault(); }
     }
