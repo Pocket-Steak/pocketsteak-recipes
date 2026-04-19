@@ -29,7 +29,7 @@ const COMMON_INGREDIENT_WORDS = new Set([
 
 const WEAK_INGREDIENT_WORDS = new Set([
   'batter', 'cheese', 'crust', 'dough', 'dressing', 'filling', 'glaze', 'marinade',
-  'mix', 'mixture', 'oil', 'sauce', 'seasoning',
+  'mix', 'mixture', 'sauce', 'seasoning',
 ]);
 
 const FRACTION_REPLACEMENTS = {
@@ -191,6 +191,36 @@ const formatScrapedList = (value) => {
 
   return value || '';
 };
+
+function StepMeasurementPreview({ rows }) {
+  if (!rows.length) return null;
+
+  return (
+    <div className="rounded-xl border border-gray-800 bg-[#0D0D0D] p-5">
+      <h3 className="mb-4 text-[10px] font-black uppercase tracking-widest text-gray-600">Step Measurement Preview</h3>
+      <div className="space-y-4 text-sm text-gray-300">
+        {rows.map(({ step, ingredients }, i) => (
+          <div key={`${i}-${step}`} className="flex gap-3">
+            <span className="text-[#FF4500] font-black italic">{i + 1}</span>
+            <div className="min-w-0">
+              <p>{step}</p>
+              {ingredients.length > 0 ? (
+                <div className="mt-2 space-y-1 border-l border-[#FF4500]/35 pl-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-gray-600">Uses</p>
+                  {ingredients.map((ingredient) => (
+                    <p key={ingredient} className="text-xs font-black leading-relaxed text-[#FF4500]">{ingredient}</p>
+                  ))}
+                </div>
+              ) : (
+                <p className="mt-2 border-l border-gray-800 pl-3 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-700">No measured ingredient matched</p>
+              )}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 export default function Home() {
   const [user, setUser] = useState(null);
@@ -460,6 +490,11 @@ export default function Home() {
   };
 
   const filteredVault = vaultItems.filter(item => item.title.toLowerCase().includes(searchQuery.toLowerCase()));
+  const recipeIngredientRefs = useMemo(() => buildIngredientRefs(recipe.ingredients), [recipe.ingredients]);
+  const recipeDirectionRows = useMemo(
+    () => buildDirectionRows(recipe.directions, recipeIngredientRefs),
+    [recipe.directions, recipeIngredientRefs]
+  );
   const selectedIngredientRefs = useMemo(() => buildIngredientRefs(selectedRecipe?.ingredients), [selectedRecipe?.ingredients]);
   const selectedDirectionRows = useMemo(
     () => buildDirectionRows(selectedRecipe?.directions, selectedIngredientRefs),
@@ -663,6 +698,7 @@ export default function Home() {
                         <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                         <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                       </div>
+                      <StepMeasurementPreview rows={recipeDirectionRows} />
                       <textarea value={recipe.notes} onChange={(e) => setRecipe({...recipe, notes: e.target.value})} placeholder="NOTES" className="w-full h-32 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                       <button onClick={saveRecipe} className="w-full p-4 bg-[#FF4500] text-white rounded-xl font-black uppercase tracking-widest transition-all shadow-lg hover:bg-[#E63E00]">SAVE TO COOKBOOK</button>
                     </div>
@@ -695,13 +731,16 @@ export default function Home() {
 
                     <div className="flex-1 min-h-0 overflow-hidden p-6 relative">
                       {isEditing ? (
-                        <div className="absolute inset-6 flex flex-col gap-4">
-                          <div className="grid grid-cols-2 gap-4 flex-1 min-h-0 overflow-hidden">
-                            <textarea value={selectedRecipe.ingredients || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, ingredients: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
-                            <textarea value={selectedRecipe.directions || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, directions: e.target.value})} className="bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
+                        <div className="absolute inset-6 overflow-y-auto custom-scrollbar pr-2">
+                          <div className="flex min-h-full flex-col gap-4">
+                            <div className="grid grid-cols-2 gap-4">
+                              <textarea value={selectedRecipe.ingredients || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, ingredients: e.target.value})} className="h-52 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
+                              <textarea value={selectedRecipe.directions || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, directions: e.target.value})} className="h-52 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
+                            </div>
+                            <StepMeasurementPreview rows={selectedDirectionRows} />
+                            <textarea value={selectedRecipe.notes || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, notes: e.target.value})} placeholder="NOTES" className="w-full h-32 flex-shrink-0 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
+                            <button onClick={updateRecipe} className="w-full p-4 bg-[#FF4500] text-white font-black uppercase tracking-widest rounded-xl hover:bg-[#E63E00] transition-all">Update Cookbook</button>
                           </div>
-                          <textarea value={selectedRecipe.notes || ''} onChange={(e) => setSelectedRecipe({...selectedRecipe, notes: e.target.value})} placeholder="NOTES" className="w-full h-32 flex-shrink-0 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500] overflow-y-auto" />
-                          <button onClick={updateRecipe} className="w-full p-4 bg-[#FF4500] text-white font-black uppercase tracking-widest rounded-xl hover:bg-[#E63E00] transition-all">Update Cookbook</button>
                         </div>
                       ) : isCookingMode ? (
                         <div className="absolute inset-6 overflow-y-auto custom-scrollbar space-y-12 pb-20">
