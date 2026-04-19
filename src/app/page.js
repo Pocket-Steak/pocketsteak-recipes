@@ -20,11 +20,9 @@ export default function Home() {
   const [isPasswordRecovery, setIsPasswordRecovery] = useState(false);
   const [view, setView] = useState('vault');
   const [urlInput, setUrlInput] = useState('');
-  const [butcherInput, setButcherInput] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [recipe, setRecipe] = useState(emptyRecipe);
   const [showEditor, setShowEditor] = useState(false);
-  const [showButcherBlock, setShowButcherBlock] = useState(false);
   
   // Vault States
   const [vaultItems, setVaultItems] = useState([]);
@@ -208,15 +206,6 @@ export default function Home() {
     } finally { setIsProcessing(false); setUrlInput(''); }
   };
 
-  const processButcherBlock = () => {
-    const target = isEditing ? selectedRecipe : recipe;
-    const newIngredients = target.ingredients ? target.ingredients + '\n' + butcherInput : butcherInput;
-    if (isEditing) setSelectedRecipe({...selectedRecipe, ingredients: newIngredients});
-    else setRecipe({...recipe, ingredients: newIngredients});
-    setButcherInput('');
-    setShowButcherBlock(false);
-  };
-
   const saveRecipe = async () => {
     if (!user) return;
 
@@ -272,7 +261,6 @@ export default function Home() {
     setSelectedRecipe(null);
     setView('scratch');
     setShowEditor(true);
-    setShowButcherBlock(false);
     setIsCookingMode(false);
     setIsEditing(false);
     setShowRefHUD(false);
@@ -284,7 +272,6 @@ export default function Home() {
     setSelectedRecipe(null);
     setView('premade');
     setShowEditor(false);
-    setShowButcherBlock(false);
     setIsCookingMode(false);
     setIsEditing(false);
     setShowRefHUD(false);
@@ -424,7 +411,7 @@ export default function Home() {
                 <div className="flex-1 min-h-0 rounded-2xl border-2 border-gray-700 bg-[#101010] p-3 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_18px_45px_rgba(0,0,0,0.55)] overflow-hidden">
                   <div className="h-full overflow-y-auto space-y-2 pr-2 custom-scrollbar">
                     {filteredVault.map(item => (
-                      <div key={item.id} onClick={() => { setSelectedRecipe(item); setView('vault'); setShowEditor(false); setShowButcherBlock(false); setIsCookingMode(false); setIsEditing(false); setShowRefHUD(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-gray-900 bg-[#141414] hover:border-gray-700 hover:bg-[#1A1A1A]'}`}>
+                      <div key={item.id} onClick={() => { setSelectedRecipe(item); setView('vault'); setShowEditor(false); setIsCookingMode(false); setIsEditing(false); setShowRefHUD(false); }} className={`p-4 rounded-xl cursor-pointer border transition-all shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-gray-900 bg-[#141414] hover:border-gray-700 hover:bg-[#1A1A1A]'}`}>
                         <h3 className="font-bold text-sm truncate uppercase tracking-tight">{item.title}</h3>
                       </div>
                     ))}
@@ -482,17 +469,9 @@ export default function Home() {
                     <div className="max-w-2xl mx-auto p-8 border-2 border-gray-800 rounded-2xl bg-[#101010] shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_18px_45px_rgba(0,0,0,0.45)] space-y-6">
                       <div className="flex justify-between items-center border-b border-gray-800 pb-4">
                         <h2 className="text-xs font-black text-gray-600 uppercase tracking-widest">{view === 'review' ? 'Review Imported Recipe' : 'Recipe Intake Form'}</h2>
-                        <button onClick={() => setShowButcherBlock(!showButcherBlock)} className="text-[9px] bg-gray-800 px-3 py-1 rounded-full text-gray-400 hover:text-white transition-all uppercase font-black tracking-widest">
-                          {showButcherBlock ? "- Hide Butcher" : "+ Butcher Block"}
-                        </button>
                       </div>
-                      {showButcherBlock && (
-                        <div className="p-4 bg-[#0D0D0D] border border-gray-800 rounded-xl space-y-4">
-                          <textarea value={butcherInput} onChange={(e) => setButcherInput(e.target.value)} className="w-full h-32 bg-transparent outline-none text-xs text-gray-500" placeholder="Dump raw text here..." />
-                          <button onClick={processButcherBlock} className="w-full p-2 bg-white text-black font-black text-[9px] rounded uppercase">Butcher & Transfer</button>
-                        </div>
-                      )}
                       <input value={recipe.title} onChange={(e) => setRecipe({...recipe, title: e.target.value})} placeholder="RECIPE NAME" className="w-full bg-transparent border-b border-gray-800 text-3xl font-black p-2 outline-none focus:border-[#FF4500] uppercase italic" />
+                      <p className="text-[9px] font-black uppercase tracking-[0.16em] text-gray-600">* Each line becomes its own ingredient or instruction line.</p>
                       <div className="grid grid-cols-2 gap-4">
                         <textarea value={recipe.ingredients} onChange={(e) => setRecipe({...recipe, ingredients: e.target.value})} placeholder="INGREDIENTS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
                         <textarea value={recipe.directions} onChange={(e) => setRecipe({...recipe, directions: e.target.value})} placeholder="DIRECTIONS" className="w-full h-48 bg-[#0D0D0D] border border-gray-800 rounded-xl p-4 text-xs outline-none focus:border-[#FF4500]" />
