@@ -257,11 +257,6 @@ export default function Home() {
   const [isEditing, setIsEditing] = useState(false);
   const [showRefHUD, setShowRefHUD] = useState(false);
 
-  // Timer States
-  const [stopwatch, setStopwatch] = useState(0);
-  const [swActive, setSwActive] = useState(false);
-  const [countdown, setCountdown] = useState(0);
-  const [cdActive, setCdActive] = useState(false);
   const missingSupabaseMessage = 'PocketSteak is missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY.';
 
   const ensureSupabase = () => {
@@ -318,30 +313,6 @@ export default function Home() {
       authListener.subscription.unsubscribe();
     };
   }, [supabase]);
-
-  useEffect(() => {
-    let int;
-    if (swActive) int = setInterval(() => setStopwatch(s => s + 1), 1000);
-    return () => clearInterval(int);
-  }, [swActive]);
-
-  useEffect(() => {
-    let int;
-    if (cdActive && countdown > 0) {
-      int = setInterval(() => setCountdown(c => c - 1), 1000);
-    } else if (countdown === 0 && cdActive) {
-      setCdActive(false);
-      const alarm = new Audio('https://actions.google.com/sounds/v1/alarms/beep_short.ogg');
-      alarm.play().catch(() => console.log("Sound blocked."));
-    }
-    return () => clearInterval(int);
-  }, [cdActive, countdown]);
-
-  const formatTime = (seconds) => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, '0')}`;
-  };
 
   const fetchVault = useCallback(async () => {
     if (!supabase || !user) return;
@@ -550,22 +521,33 @@ export default function Home() {
     () => buildDirectionRows(selectedRecipe?.directions, selectedIngredientRefs),
     [selectedRecipe?.directions, selectedIngredientRefs]
   );
+  const isCookChromeCompact = Boolean(selectedRecipe && isCookingMode && !isEditing);
+  const chromeButtonClass = (isActive, extraClasses = '') =>
+    `w-full border uppercase transition-all shadow-lg sm:w-auto ${
+      isCookChromeCompact
+        ? 'min-h-9 rounded-xl px-3 py-2 sm:rounded-full sm:px-4'
+        : 'min-h-14 rounded-2xl px-5 py-3 sm:rounded-full sm:py-2'
+    } ${
+      isActive
+        ? 'border-[#FF4500] bg-[#1A1A1A] text-white'
+        : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'
+    } ${extraClasses}`;
 
   return (
-    <main className="flex min-h-dvh flex-col items-center justify-start overflow-x-hidden bg-[#0D0D0D] px-3 py-4 font-sans text-white sm:px-4 sm:py-5 lg:h-dvh lg:px-6 lg:py-6 lg:overflow-hidden">
-      <div className="mb-4 flex w-full max-w-7xl flex-shrink-0 flex-col items-center text-center sm:mb-6">
-        <div className="flex flex-col items-center gap-3 sm:flex-row sm:gap-4">
+    <main className={`flex min-h-dvh flex-col items-center justify-start overflow-x-hidden bg-[#0D0D0D] px-3 font-sans text-white sm:px-4 lg:h-dvh lg:px-6 lg:overflow-hidden ${isCookChromeCompact ? 'py-2 sm:py-3 lg:py-3' : 'py-4 sm:py-5 lg:py-6'}`}>
+      <div className={`flex w-full max-w-7xl flex-shrink-0 flex-col items-center text-center ${isCookChromeCompact ? 'mb-2 sm:mb-3' : 'mb-4 sm:mb-6'}`}>
+        <div className={isCookChromeCompact ? 'flex flex-row items-center gap-2 sm:gap-3' : 'flex flex-col items-center gap-3 sm:flex-row sm:gap-4'}>
           <Image
             src="/assets/pocket_steak_logo.png"
             alt="Logo"
             width={144}
             height={144}
             priority
-            className="h-14 w-auto sm:h-16"
+            className={`w-auto ${isCookChromeCompact ? 'h-9 sm:h-10' : 'h-14 sm:h-16'}`}
           />
           <div className="flex flex-col items-center">
-            <h1 className="text-2xl font-black uppercase italic leading-none tracking-tighter text-[#FF4500] sm:text-3xl">PocketSteak</h1>
-            <p className="mt-0.5 text-[7px] font-black uppercase italic tracking-[0.35em] text-[#FF4500] sm:tracking-[0.4em]">Pitmaster Intelligence</p>
+            <h1 className={`font-black uppercase italic leading-none tracking-tighter text-[#FF4500] ${isCookChromeCompact ? 'text-lg sm:text-xl' : 'text-2xl sm:text-3xl'}`}>PocketSteak</h1>
+            <p className={`font-black uppercase italic text-[#FF4500] ${isCookChromeCompact ? 'mt-0 text-[6px] tracking-[0.24em] sm:tracking-[0.3em]' : 'mt-0.5 text-[7px] tracking-[0.35em] sm:tracking-[0.4em]'}`}>Pitmaster Intelligence</p>
           </div>
         </div>
       </div>
@@ -639,48 +621,32 @@ export default function Home() {
           </form>
         </div>
       ) : (
-        <div className="flex w-full max-w-7xl flex-1 flex-col gap-4 lg:min-h-0">
-          <div className="flex flex-col gap-4 lg:flex-shrink-0 xl:flex-row xl:items-start xl:justify-between">
+        <div className={`flex w-full max-w-7xl flex-1 flex-col lg:min-h-0 ${isCookChromeCompact ? 'gap-2' : 'gap-4'}`}>
+          <div className={`flex flex-col lg:flex-shrink-0 xl:flex-row xl:justify-between ${isCookChromeCompact ? 'gap-2 xl:items-center' : 'gap-4 xl:items-start'}`}>
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-              <button onClick={openScratchForm} className={`min-h-14 w-full rounded-2xl border px-5 py-3 uppercase transition-all shadow-lg sm:w-auto sm:rounded-full sm:py-2 ${view === 'scratch' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
-                <span className="block text-[9px] font-black tracking-[0.2em]">+ From Scratch</span>
-                <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Make your own recipe</span>
+              <button onClick={openScratchForm} className={chromeButtonClass(view === 'scratch')}>
+                <span className={`block font-black ${isCookChromeCompact ? 'text-[8px] tracking-[0.14em]' : 'text-[9px] tracking-[0.2em]'}`}>+ From Scratch</span>
+                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Make your own recipe</span>}
               </button>
-              <button onClick={openImportForm} className={`min-h-14 w-full rounded-2xl border px-5 py-3 uppercase transition-all shadow-lg sm:w-auto sm:rounded-full sm:py-2 ${view === 'premade' || view === 'review' ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
-                <span className="block text-[9px] font-black tracking-[0.2em]">+ Import Recipe</span>
-                <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Copy URL from web</span>
+              <button onClick={openImportForm} className={chromeButtonClass(view === 'premade' || view === 'review')}>
+                <span className={`block font-black ${isCookChromeCompact ? 'text-[8px] tracking-[0.14em]' : 'text-[9px] tracking-[0.2em]'}`}>+ Import Recipe</span>
+                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Copy URL from web</span>}
               </button>
-              <button onClick={() => setShowRefHUD(!showRefHUD)} className={`min-h-14 w-full rounded-2xl border px-5 py-3 uppercase transition-all shadow-lg sm:w-auto sm:max-w-[260px] sm:rounded-full sm:py-2 ${showRefHUD ? 'border-[#FF4500] bg-[#1A1A1A] text-white' : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'}`}>
-                <span className="block text-[9px] font-black tracking-[0.2em]">Reference</span>
-                <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Cooking temps and measurements</span>
+              <button onClick={() => setShowRefHUD(!showRefHUD)} className={chromeButtonClass(showRefHUD, isCookChromeCompact ? '' : 'sm:max-w-[260px]')}>
+                <span className={`block font-black ${isCookChromeCompact ? 'text-[8px] tracking-[0.14em]' : 'text-[9px] tracking-[0.2em]'}`}>Reference</span>
+                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Cooking temps and measurements</span>}
               </button>
             </div>
 
-            <div className="flex flex-col gap-3 xl:items-end">
+            <div className={`flex flex-col xl:items-end ${isCookChromeCompact ? 'gap-2' : 'gap-3'}`}>
               <div className="flex items-center justify-between gap-3 sm:justify-end">
                 <div className="hidden max-w-[220px] truncate text-right text-[9px] font-black uppercase tracking-[0.2em] text-gray-600 md:block">
                   {user.email}
                 </div>
-                <button onClick={signOut} className="rounded-full border border-gray-800 bg-[#141414] px-4 py-2 text-[9px] font-black uppercase tracking-[0.2em] text-gray-500 transition-all hover:border-[#FF4500] hover:text-white">
+                <button onClick={signOut} className={`rounded-full border border-gray-800 bg-[#141414] font-black uppercase text-gray-500 transition-all hover:border-[#FF4500] hover:text-white ${isCookChromeCompact ? 'px-3 py-1.5 text-[8px] tracking-[0.16em]' : 'px-4 py-2 text-[9px] tracking-[0.2em]'}`}>
                   Sign Out
                 </button>
               </div>
-
-              {isCookingMode && (
-                <div className="flex w-full items-stretch overflow-hidden rounded-xl border-2 border-gray-800 bg-black shadow-2xl sm:w-auto">
-                  <div className="flex min-w-0 flex-1 flex-col items-center justify-center border-r border-gray-800 bg-[#0A0A0A] px-4 py-3 sm:min-w-[120px] sm:px-6">
-                    <span className="text-[7px] font-black uppercase tracking-widest text-gray-500">Mission</span>
-                    <span className="font-mono text-xl font-bold text-white">{formatTime(stopwatch)}</span>
-                    <button onClick={() => setSwActive(!swActive)} className={`text-[8px] font-black ${swActive ? 'text-amber-500' : 'text-emerald-500'}`}>{swActive ? 'PAUSE' : 'START'}</button>
-                  </div>
-                  <div className="flex min-w-0 flex-1 flex-col items-center justify-center bg-[#0F0F0F] px-4 py-3 sm:min-w-[120px] sm:px-6">
-                    <span className="text-[7px] font-black uppercase tracking-widest text-gray-500">Countdown</span>
-                    <span onClick={() => !cdActive && setCountdown(c => c + 60)} className={`cursor-pointer font-mono text-xl font-bold ${countdown > 0 ? 'text-[#FF4500]' : 'text-gray-700'}`}>{formatTime(countdown)}</span>
-                    <button onClick={() => countdown > 0 && setCdActive(!cdActive)} className={`text-[8px] font-black ${cdActive ? 'text-amber-500' : 'text-emerald-500'}`}>{cdActive ? 'STOP' : 'GO'}</button>
-                  </div>
-                  <button onClick={() => { setStopwatch(0); setSwActive(false); setCountdown(0); setCdActive(false); }} className="px-4 font-black text-gray-600 transition-colors hover:text-red-500">✕</button>
-                </div>
-              )}
             </div>
           </div>
 
@@ -762,7 +728,7 @@ export default function Home() {
                 </div>
               ) : selectedRecipe ? (
                 <>
-                  <div className="flex flex-col gap-4 border-b border-gray-800 bg-[#1A1A1A] p-4 sm:p-6 sm:flex-row sm:items-start sm:justify-between lg:flex-shrink-0">
+                  <div className={`flex flex-col border-b border-gray-800 bg-[#1A1A1A] sm:flex-row sm:items-start sm:justify-between lg:flex-shrink-0 ${isCookingMode ? 'gap-3 p-3 sm:p-4' : 'gap-4 p-4 sm:p-6'}`}>
                     {isEditing ? (
                       <input
                         aria-label="Recipe title"
@@ -771,7 +737,7 @@ export default function Home() {
                         className="min-w-0 flex-1 rounded-xl border border-gray-800 bg-[#0D0D0D] px-4 py-3 text-xl font-black uppercase italic leading-none tracking-tighter text-[#FF4500] outline-none focus:border-[#FF4500] sm:text-2xl"
                       />
                     ) : (
-                      <h2 className="min-w-0 flex-1 text-xl font-black uppercase italic leading-none tracking-tighter text-[#FF4500] sm:text-2xl">{selectedRecipe.title}</h2>
+                      <h2 className={`min-w-0 flex-1 font-black uppercase italic leading-none tracking-tighter text-[#FF4500] ${isCookingMode ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>{selectedRecipe.title}</h2>
                     )}
                     <div className="flex flex-wrap gap-2">
                       {!isEditing && (
@@ -786,7 +752,7 @@ export default function Home() {
                     </div>
                   </div>
 
-                  <div className="flex-1 min-h-0 overflow-y-auto p-4 custom-scrollbar sm:p-6">
+                  <div className={`flex-1 min-h-0 overflow-y-auto custom-scrollbar ${isCookingMode ? 'p-3 sm:p-4' : 'p-4 sm:p-6'}`}>
                     {isEditing ? (
                       <div className="flex flex-col gap-4 pr-1 sm:pr-2">
                         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -798,27 +764,27 @@ export default function Home() {
                         <button onClick={updateRecipe} className="w-full rounded-xl bg-[#FF4500] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#E63E00]">Update Cookbook</button>
                       </div>
                     ) : isCookingMode ? (
-                      <div className="mx-auto flex w-full max-w-4xl flex-col gap-8 pb-8 sm:gap-12 sm:pb-20">
+                      <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-6 sm:gap-8 sm:pb-12">
                         <section>
-                          <h4 className="mb-4 text-xs font-black uppercase text-[#FF4500]">Prep Checklist</h4>
-                          <div className="space-y-3">
+                          <h4 className="mb-3 text-xs font-black uppercase text-[#FF4500]">Prep Checklist</h4>
+                          <div className="space-y-2">
                             {selectedIngredientRefs.map((ingredient, i) => (
-                              <div key={`${i}-${ingredient.line}`} onClick={() => setCheckedIngredients({ ...checkedIngredients, [i]: !checkedIngredients[i] })} className={`cursor-pointer rounded-xl border p-3 transition-all sm:p-4 ${checkedIngredients[i] ? 'border-transparent bg-black opacity-10' : 'border-gray-800 bg-[#1A1A1A]'}`}>
-                                <div className="flex items-start gap-4">
-                                  <div className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded border-2 ${checkedIngredients[i] ? 'border-emerald-500 bg-emerald-500' : 'border-gray-600'}`}>{checkedIngredients[i] && '✓'}</div>
-                                  <span className="text-base sm:text-lg">{ingredient.line}</span>
+                              <div key={`${i}-${ingredient.line}`} onClick={() => setCheckedIngredients({ ...checkedIngredients, [i]: !checkedIngredients[i] })} className={`cursor-pointer rounded-xl border p-2.5 transition-all sm:p-3 ${checkedIngredients[i] ? 'border-transparent bg-black opacity-10' : 'border-gray-800 bg-[#1A1A1A]'}`}>
+                                <div className="flex items-start gap-3">
+                                  <div className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 ${checkedIngredients[i] ? 'border-emerald-500 bg-emerald-500' : 'border-gray-600'}`}>{checkedIngredients[i] && '✓'}</div>
+                                  <span className="text-base leading-snug">{ingredient.line}</span>
                                 </div>
                               </div>
                             ))}
                           </div>
                         </section>
                         <section>
-                          <h4 className="mb-4 text-xs font-black uppercase text-[#FF4500]">The Process</h4>
-                          <div className="space-y-4">
+                          <h4 className="mb-3 text-xs font-black uppercase text-[#FF4500]">The Process</h4>
+                          <div className="space-y-3">
                             {selectedDirectionRows.map(({ step, ingredients }, i) => {
                               return (
-                                <div key={`${i}-${step}`} onClick={() => setCheckedDirections({ ...checkedDirections, [i]: !checkedDirections[i] })} className={`cursor-pointer rounded-2xl border-l-4 p-4 transition-all sm:p-6 ${checkedDirections[i] ? 'border-gray-900 bg-black opacity-10' : 'border-[#FF4500] bg-[#1A1A1A]'}`}>
-                                  <p className="text-base leading-relaxed sm:text-lg">{step}</p>
+                                <div key={`${i}-${step}`} onClick={() => setCheckedDirections({ ...checkedDirections, [i]: !checkedDirections[i] })} className={`cursor-pointer rounded-xl border-l-4 p-3 transition-all sm:p-4 ${checkedDirections[i] ? 'border-gray-900 bg-black opacity-10' : 'border-[#FF4500] bg-[#1A1A1A]'}`}>
+                                  <p className="text-base leading-relaxed">{step}</p>
                                   {ingredients.length > 0 && (
                                     <div className="mt-4 space-y-2 border-t border-gray-800 pt-3">
                                       <p className="text-[9px] font-black uppercase tracking-[0.18em] text-gray-600">Uses</p>
