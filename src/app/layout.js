@@ -1,5 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { SendFeedbackButton } from "@/components/SendFeedbackButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,7 +23,9 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-dvh bg-[#121212] text-white antialiased">{children}</body>
+      <body className="min-h-dvh bg-[#121212] text-white antialiased">{children}
+        <SendFeedbackButton appName="PocketSteak Recipes" endpointUrl="https://baseball-betting-app.vercel.app/api/send-feedback" />
+      </body>
     </html>
   );
 }
