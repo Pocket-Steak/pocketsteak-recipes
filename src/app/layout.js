@@ -23,7 +23,7 @@ export default function RootLayout({ children }) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-dvh bg-[#121212] text-white antialiased">{children}
+      <body className="min-h-dvh bg-[#FAFAF9] text-[#18181B] antialiased">{children}
         <SendFeedbackButton appName="PocketSteak Recipes" endpointUrl="https://baseball-betting-app.vercel.app/api/send-feedback" />
       </body>
     </html>

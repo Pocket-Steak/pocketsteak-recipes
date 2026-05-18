@@ -206,23 +206,23 @@ function StepMeasurementPreview({ rows }) {
   if (!rows.length) return null;
 
   return (
-    <div className="rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 sm:p-5">
-      <h3 className="mb-4 text-[9px] font-black uppercase tracking-widest text-gray-600 sm:text-[10px]">Step Measurement Preview</h3>
-      <div className="space-y-4 text-sm text-gray-300">
+    <div className="rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 shadow-[0_10px_24px_rgba(24,24,27,0.06)] sm:p-5">
+      <h3 className="mb-4 text-[9px] font-black uppercase tracking-widest text-[#5F6B63] sm:text-[10px]">Step Measurement Preview</h3>
+      <div className="space-y-4 text-sm text-[#34403A]">
         {rows.map(({ step, ingredients }, i) => (
           <div key={`${i}-${step}`} className="flex gap-3">
-            <span className="text-sm font-black italic text-[#FF4500] sm:text-base">{i + 1}</span>
+            <span className="text-sm font-black italic text-[#C2410C] sm:text-base">{i + 1}</span>
             <div className="min-w-0">
               <p>{step}</p>
               {ingredients.length > 0 ? (
-                <div className="mt-2 space-y-1 border-l border-[#FF4500]/35 pl-3">
-                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-gray-600">Uses</p>
+                <div className="mt-2 space-y-1 border-l border-[#C2410C]/35 pl-3">
+                  <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#5F6B63]">Uses</p>
                   {ingredients.map((ingredient) => (
-                    <p key={ingredient} className="text-xs font-black leading-relaxed text-[#FF4500]">{ingredient}</p>
+                    <p key={ingredient} className="text-xs font-black leading-relaxed text-[#C2410C]">{ingredient}</p>
                   ))}
                 </div>
               ) : (
-                <p className="mt-2 border-l border-gray-800 pl-3 text-[10px] font-bold uppercase tracking-[0.12em] text-gray-700">No measured ingredient matched</p>
+                <p className="mt-2 border-l border-[#D6DDD9] pl-3 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8A958E]">No measured ingredient matched</p>
               )}
             </div>
           </div>
@@ -529,12 +529,12 @@ export default function Home() {
         : 'min-h-14 rounded-2xl px-5 py-3 sm:rounded-full sm:py-2'
     } ${
       isActive
-        ? 'border-[#FF4500] bg-[#1A1A1A] text-white'
-        : 'border-gray-800 bg-[#141414] text-gray-400 hover:border-[#FF4500] hover:text-white'
+        ? 'border-[#C2410C] bg-[#F1F5F3] text-[#18181B]'
+        : 'border-[#D6DDD9] bg-white text-[#5F6B63] hover:border-[#C2410C] hover:text-[#18181B]'
     } ${extraClasses}`;
 
   return (
-    <main className={`flex min-h-dvh flex-col items-center justify-start overflow-x-hidden bg-[#0D0D0D] px-3 font-sans text-white sm:px-4 lg:h-dvh lg:px-6 lg:overflow-hidden ${isCookChromeCompact ? 'py-2 sm:py-3 lg:py-3' : 'py-4 sm:py-5 lg:py-6'}`}>
+    <main className={`flex min-h-dvh flex-col items-center justify-start overflow-x-hidden bg-[#FAFAF9] px-3 font-sans text-[#18181B] sm:px-4 lg:h-dvh lg:px-6 lg:overflow-hidden ${isCookChromeCompact ? 'py-2 sm:py-3 lg:py-3' : 'py-4 sm:py-5 lg:py-6'}`}>
       <div className={`flex w-full max-w-7xl flex-shrink-0 flex-col items-center text-center ${isCookChromeCompact ? 'mb-2 sm:mb-3' : 'mb-4 sm:mb-6'}`}>
         <div className={isCookChromeCompact ? 'flex flex-row items-center gap-2 sm:gap-3' : 'flex flex-col items-center gap-3 sm:flex-row sm:gap-4'}>
           <Image
@@ -546,23 +546,23 @@ export default function Home() {
             className={`w-auto ${isCookChromeCompact ? 'h-9 sm:h-10' : 'h-14 sm:h-16'}`}
           />
           <div className="flex flex-col items-center">
-            <h1 className={`font-black uppercase italic leading-none tracking-tighter text-[#FF4500] ${isCookChromeCompact ? 'text-lg sm:text-xl' : 'text-2xl sm:text-3xl'}`}>PocketSteak</h1>
-            <p className={`font-black uppercase italic text-[#FF4500] ${isCookChromeCompact ? 'mt-0 text-[6px] tracking-[0.24em] sm:tracking-[0.3em]' : 'mt-0.5 text-[7px] tracking-[0.35em] sm:tracking-[0.4em]'}`}>Pitmaster Intelligence</p>
+            <h1 className={`font-black uppercase italic leading-none tracking-tighter text-[#C2410C] ${isCookChromeCompact ? 'text-lg sm:text-xl' : 'text-2xl sm:text-3xl'}`}>PocketSteak</h1>
+            <p className={`font-black uppercase italic text-[#C2410C] ${isCookChromeCompact ? 'mt-0 text-[6px] tracking-[0.24em] sm:tracking-[0.3em]' : 'mt-0.5 text-[7px] tracking-[0.35em] sm:tracking-[0.4em]'}`}>Pitmaster Intelligence</p>
           </div>
         </div>
       </div>
 
       {authLoading ? (
-        <div className="flex flex-1 items-center justify-center text-[10px] font-black uppercase tracking-[0.4em] text-gray-800 animate-pulse">
+        <div className="flex flex-1 items-center justify-center text-[10px] font-black uppercase tracking-[0.4em] text-[#8A958E] animate-pulse">
           Loading pit access
         </div>
       ) : !user ? (
-        <div className="mt-6 w-full max-w-md rounded-2xl border-2 border-gray-800 bg-[#141414] p-6 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_24px_70px_rgba(0,0,0,0.65)] sm:mt-10 sm:p-8">
-          <div className="mb-8 border-b border-gray-800 pb-5">
-            <h2 className="text-2xl font-black uppercase italic leading-none tracking-tighter text-[#FF4500]">
+        <div className="mt-6 w-full max-w-md rounded-2xl border-2 border-[#D6DDD9] bg-white p-6 shadow-[0_18px_50px_rgba(24,24,27,0.09)] sm:mt-10 sm:p-8">
+          <div className="mb-8 border-b border-[#D6DDD9] pb-5">
+            <h2 className="text-2xl font-black uppercase italic leading-none tracking-tighter text-[#C2410C]">
               Sign In
             </h2>
-            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-gray-600">
+            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#5F6B63]">
               Your private recipe box
             </p>
           </div>
@@ -573,7 +573,7 @@ export default function Home() {
               value={authEmail}
               onChange={(e) => setAuthEmail(e.target.value)}
               placeholder="EMAIL"
-              className="w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-sm font-bold outline-none focus:border-[#FF4500]"
+              className="w-full rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-sm font-bold outline-none placeholder:text-[#8A958E] focus:border-[#C2410C]"
               autoComplete="email"
             />
             <input
@@ -581,27 +581,27 @@ export default function Home() {
               value={authPassword}
               onChange={(e) => setAuthPassword(e.target.value)}
               placeholder="PASSWORD"
-              className="w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-sm font-bold outline-none focus:border-[#FF4500]"
+              className="w-full rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-sm font-bold outline-none placeholder:text-[#8A958E] focus:border-[#C2410C]"
               autoComplete="current-password"
             />
-            <button type="submit" className="w-full rounded-xl bg-[#FF4500] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#E63E00]">
+            <button type="submit" className="w-full rounded-xl bg-[#C2410C] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#9A3412]">
               {authActionLoading ? 'Working...' : 'Enter Recipe Box'}
             </button>
           </form>
 
           <div className="mt-6 flex justify-end text-[10px] font-black uppercase tracking-widest">
-            <button onClick={sendPasswordReset} className="text-gray-500 hover:text-[#FF4500]">
+            <button onClick={sendPasswordReset} className="text-[#5F6B63] hover:text-[#C2410C]">
               Reset Password
             </button>
           </div>
         </div>
       ) : isPasswordRecovery ? (
-        <div className="mt-6 w-full max-w-md rounded-2xl border-2 border-gray-800 bg-[#141414] p-6 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_24px_70px_rgba(0,0,0,0.65)] sm:mt-10 sm:p-8">
-          <div className="mb-8 border-b border-gray-800 pb-5">
-            <h2 className="text-2xl font-black uppercase italic leading-none tracking-tighter text-[#FF4500]">
+        <div className="mt-6 w-full max-w-md rounded-2xl border-2 border-[#D6DDD9] bg-white p-6 shadow-[0_18px_50px_rgba(24,24,27,0.09)] sm:mt-10 sm:p-8">
+          <div className="mb-8 border-b border-[#D6DDD9] pb-5">
+            <h2 className="text-2xl font-black uppercase italic leading-none tracking-tighter text-[#C2410C]">
               Reset Password
             </h2>
-            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-gray-600">
+            <p className="mt-2 text-[10px] font-black uppercase tracking-[0.25em] text-[#5F6B63]">
               Choose a new pit key
             </p>
           </div>
@@ -612,10 +612,10 @@ export default function Home() {
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
               placeholder="NEW PASSWORD"
-              className="w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-sm font-bold outline-none focus:border-[#FF4500]"
+              className="w-full rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-sm font-bold outline-none placeholder:text-[#8A958E] focus:border-[#C2410C]"
               autoComplete="new-password"
             />
-            <button type="submit" className="w-full rounded-xl bg-[#FF4500] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#E63E00]">
+            <button type="submit" className="w-full rounded-xl bg-[#C2410C] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#9A3412]">
               Update Password
             </button>
           </form>
@@ -626,24 +626,24 @@ export default function Home() {
             <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
               <button onClick={openScratchForm} className={chromeButtonClass(view === 'scratch')}>
                 <span className={`block font-black ${isCookChromeCompact ? 'text-[8px] tracking-[0.14em]' : 'text-[9px] tracking-[0.2em]'}`}>+ From Scratch</span>
-                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Make your own recipe</span>}
+                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-[#5F6B63]">Make your own recipe</span>}
               </button>
               <button onClick={openImportForm} className={chromeButtonClass(view === 'premade' || view === 'review')}>
                 <span className={`block font-black ${isCookChromeCompact ? 'text-[8px] tracking-[0.14em]' : 'text-[9px] tracking-[0.2em]'}`}>+ Import Recipe</span>
-                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Copy URL from web</span>}
+                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-[#5F6B63]">Copy URL from web</span>}
               </button>
               <button onClick={() => setShowRefHUD(!showRefHUD)} className={chromeButtonClass(showRefHUD, isCookChromeCompact ? '' : 'sm:max-w-[260px]')}>
                 <span className={`block font-black ${isCookChromeCompact ? 'text-[8px] tracking-[0.14em]' : 'text-[9px] tracking-[0.2em]'}`}>Reference</span>
-                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-gray-600">Cooking temps and measurements</span>}
+                {!isCookChromeCompact && <span className="mt-1 block text-[7px] font-bold tracking-[0.16em] text-[#5F6B63]">Cooking temps and measurements</span>}
               </button>
             </div>
 
             <div className={`flex flex-col xl:items-end ${isCookChromeCompact ? 'gap-2' : 'gap-3'}`}>
               <div className="flex items-center justify-between gap-3 sm:justify-end">
-                <div className="hidden max-w-[220px] truncate text-right text-[9px] font-black uppercase tracking-[0.2em] text-gray-600 md:block">
+                <div className="hidden max-w-[220px] truncate text-right text-[9px] font-black uppercase tracking-[0.2em] text-[#5F6B63] md:block">
                   {user.email}
                 </div>
-                <button onClick={signOut} className={`rounded-full border border-gray-800 bg-[#141414] font-black uppercase text-gray-500 transition-all hover:border-[#FF4500] hover:text-white ${isCookChromeCompact ? 'px-3 py-1.5 text-[8px] tracking-[0.16em]' : 'px-4 py-2 text-[9px] tracking-[0.2em]'}`}>
+                <button onClick={signOut} className={`rounded-full border border-[#D6DDD9] bg-white font-black uppercase text-[#5F6B63] transition-all hover:border-[#C2410C] hover:text-[#18181B] ${isCookChromeCompact ? 'px-3 py-1.5 text-[8px] tracking-[0.16em]' : 'px-4 py-2 text-[9px] tracking-[0.2em]'}`}>
                   Sign Out
                 </button>
               </div>
@@ -652,11 +652,11 @@ export default function Home() {
 
           <div className="flex flex-col gap-4 lg:min-h-0 lg:flex-1 lg:flex-row lg:gap-6 lg:overflow-hidden">
             <div className="flex w-full flex-col gap-3 lg:w-[18rem] lg:min-h-0 lg:flex-shrink-0">
-              <input placeholder="Search recipes..." className="rounded-lg border-2 border-gray-800 bg-[#141414] p-3 text-sm outline-none shadow-[inset_0_0_0_1px_rgba(255,255,255,0.02)] focus:border-[#FF4500]" onChange={(e) => setSearchQuery(e.target.value)} />
-              <div className="max-h-64 overflow-hidden rounded-2xl border-2 border-gray-700 bg-[#101010] p-3 shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_18px_45px_rgba(0,0,0,0.55)] lg:max-h-none lg:flex-1 lg:min-h-0">
+              <input placeholder="Search recipes..." className="rounded-lg border-2 border-[#D6DDD9] bg-white p-3 text-sm outline-none placeholder:text-[#8A958E] shadow-[inset_0_0_0_1px_rgba(24,24,27,0.03)] focus:border-[#C2410C]" onChange={(e) => setSearchQuery(e.target.value)} />
+              <div className="max-h-64 overflow-hidden rounded-2xl border-2 border-[#C9D4CE] bg-white p-3 shadow-[0_14px_32px_rgba(24,24,27,0.08)] lg:max-h-none lg:flex-1 lg:min-h-0">
                 <div className="max-h-64 space-y-2 overflow-y-auto pr-2 custom-scrollbar lg:h-full lg:max-h-none">
                   {filteredVault.map(item => (
-                    <div key={item.id} onClick={() => { setSelectedRecipe(item); setView('vault'); setShowEditor(false); setIsCookingMode(false); setIsEditing(false); setShowRefHUD(false); }} className={`rounded-xl border p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025)] transition-all cursor-pointer ${selectedRecipe?.id === item.id ? 'border-[#FF4500] bg-[#1A1A1A]' : 'border-gray-900 bg-[#141414] hover:border-gray-700 hover:bg-[#1A1A1A]'}`}>
+                    <div key={item.id} onClick={() => { setSelectedRecipe(item); setView('vault'); setShowEditor(false); setIsCookingMode(false); setIsEditing(false); setShowRefHUD(false); }} className={`rounded-xl border p-4 shadow-[inset_0_0_0_1px_rgba(24,24,27,0.025)] transition-all cursor-pointer ${selectedRecipe?.id === item.id ? 'border-[#C2410C] bg-[#F1F5F3]' : 'border-[#E4E9E6] bg-white hover:border-[#C9D4CE] hover:bg-[#F1F5F3]'}`}>
                       <h3 className="truncate text-sm font-bold uppercase tracking-tight">{item.title}</h3>
                     </div>
                   ))}
@@ -664,7 +664,7 @@ export default function Home() {
               </div>
             </div>
 
-            <div className="relative flex min-h-[420px] flex-1 flex-col overflow-hidden rounded-2xl border-2 border-gray-700 bg-[#141414] shadow-[0_0_0_1px_rgba(255,69,0,0.12),0_24px_70px_rgba(0,0,0,0.65)] lg:min-h-0">
+            <div className="relative flex min-h-[420px] flex-1 flex-col overflow-hidden rounded-2xl border-2 border-[#C9D4CE] bg-white shadow-[0_18px_50px_rgba(24,24,27,0.09)] lg:min-h-0">
               {showRefHUD && (
                 <div
                   className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 p-4 backdrop-blur-sm sm:p-6"
@@ -674,23 +674,23 @@ export default function Home() {
                     role="dialog"
                     aria-modal="true"
                     aria-label="Pitmaster reference"
-                    className="w-full max-w-2xl rounded-2xl border border-[#FF4500]/50 bg-black/98 p-5 shadow-2xl sm:p-6"
+                    className="w-full max-w-2xl rounded-2xl border border-[#C2410C]/40 bg-white p-5 shadow-2xl sm:p-6"
                     onClick={(e) => e.stopPropagation()}
                   >
-                    <div className="mb-4 flex items-center justify-between border-b border-gray-800 pb-2">
-                      <span className="text-[10px] font-black uppercase tracking-widest text-[#FF4500]">Pitmaster Ref Intel</span>
-                      <button onClick={() => setShowRefHUD(false)} className="text-gray-600 hover:text-white">✕</button>
+                    <div className="mb-4 flex items-center justify-between border-b border-[#D6DDD9] pb-2">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-[#C2410C]">Pitmaster Ref Intel</span>
+                      <button onClick={() => setShowRefHUD(false)} className="text-[#5F6B63] hover:text-[#18181B]">✕</button>
                     </div>
                     <div className="grid grid-cols-1 gap-5 font-mono text-xs sm:grid-cols-2 sm:gap-6 sm:text-[10px]">
                       <div className="space-y-4">
-                        <p className="border-b border-gray-900 text-[9px] font-black uppercase text-gray-500">Internal Temps</p>
-                        <div className="flex justify-between"><span>Rare</span><span className="text-[#FF4500]">125°F</span></div>
-                        <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#FF4500]">135°F</span></div>
-                        <div className="flex justify-between"><span>Medium</span><span className="text-[#FF4500]">145°F</span></div>
-                        <div className="flex justify-between"><span>Chicken</span><span className="text-[#FF4500]">165°F</span></div>
+                        <p className="border-b border-[#E4E9E6] text-[9px] font-black uppercase text-[#5F6B63]">Internal Temps</p>
+                        <div className="flex justify-between"><span>Rare</span><span className="text-[#C2410C]">125°F</span></div>
+                        <div className="flex justify-between"><span>Med-Rare</span><span className="text-[#C2410C]">135°F</span></div>
+                        <div className="flex justify-between"><span>Medium</span><span className="text-[#C2410C]">145°F</span></div>
+                        <div className="flex justify-between"><span>Chicken</span><span className="text-[#C2410C]">165°F</span></div>
                       </div>
                       <div className="space-y-4">
-                        <p className="border-b border-gray-900 text-[9px] font-black uppercase text-gray-500">Conversions</p>
+                        <p className="border-b border-[#E4E9E6] text-[9px] font-black uppercase text-[#5F6B63]">Conversions</p>
                         <div className="flex justify-between"><span>1 Cup</span><span>8 oz</span></div>
                         <div className="flex justify-between"><span>1/2 Cup</span><span>4 oz</span></div>
                         <div className="flex justify-between"><span>1 Tbsp</span><span>3 tsp</span></div>
@@ -703,51 +703,51 @@ export default function Home() {
 
               {view === 'premade' && !showEditor ? (
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar sm:p-6 lg:p-8">
-                  <div className="mx-auto max-w-xl rounded-2xl border-2 border-gray-800 bg-[#101010] p-6 text-center shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_18px_45px_rgba(0,0,0,0.45)] sm:p-10">
-                    <h2 className="mb-6 text-xl font-black uppercase italic tracking-tighter text-[#FF4500]">Import Recipe</h2>
-                    <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="PASTE URL HERE" className="mb-4 w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-center font-bold outline-none focus:border-[#FF4500]" />
-                    <button onClick={handleUrlScrape} className={`w-full rounded-xl bg-[#FF4500] p-4 font-black text-white ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? 'PREPPING...' : 'PREPARE RECIPE'}</button>
+                  <div className="mx-auto max-w-xl rounded-2xl border-2 border-[#D6DDD9] bg-white p-6 text-center shadow-[0_14px_32px_rgba(24,24,27,0.08)] sm:p-10">
+                    <h2 className="mb-6 text-xl font-black uppercase italic tracking-tighter text-[#C2410C]">Import Recipe</h2>
+                    <input value={urlInput} onChange={(e) => setUrlInput(e.target.value)} placeholder="PASTE URL HERE" className="mb-4 w-full rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-center font-bold outline-none placeholder:text-[#8A958E] focus:border-[#C2410C]" />
+                    <button onClick={handleUrlScrape} className={`w-full rounded-xl bg-[#C2410C] p-4 font-black text-white hover:bg-[#9A3412] ${isProcessing ? 'animate-pulse' : ''}`}>{isProcessing ? 'PREPPING...' : 'PREPARE RECIPE'}</button>
                   </div>
                 </div>
               ) : (view === 'scratch' || view === 'review') ? (
                 <div className="flex-1 overflow-y-auto p-4 custom-scrollbar sm:p-6 lg:p-8">
-                  <div className="mx-auto max-w-2xl space-y-5 rounded-2xl border-2 border-gray-800 bg-[#101010] p-5 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_18px_45px_rgba(0,0,0,0.45)] sm:space-y-6 sm:p-8">
-                    <div className="flex items-center justify-between border-b border-gray-800 pb-4">
-                      <h2 className="text-xs font-black uppercase tracking-widest text-gray-600">{view === 'review' ? 'Review Imported Recipe' : 'Recipe Intake Form'}</h2>
+                  <div className="mx-auto max-w-2xl space-y-5 rounded-2xl border-2 border-[#D6DDD9] bg-white p-5 shadow-[0_14px_32px_rgba(24,24,27,0.08)] sm:space-y-6 sm:p-8">
+                    <div className="flex items-center justify-between border-b border-[#D6DDD9] pb-4">
+                      <h2 className="text-xs font-black uppercase tracking-widest text-[#5F6B63]">{view === 'review' ? 'Review Imported Recipe' : 'Recipe Intake Form'}</h2>
                     </div>
-                    <input value={recipe.title} onChange={(e) => setRecipe({ ...recipe, title: e.target.value })} placeholder="RECIPE NAME" className="w-full border-b border-gray-800 bg-transparent p-2 text-2xl font-black uppercase italic outline-none focus:border-[#FF4500] sm:text-3xl" />
-                    <p className="text-[9px] font-black uppercase tracking-[0.16em] text-gray-600">* Each line becomes its own ingredient or instruction line.</p>
+                    <input value={recipe.title} onChange={(e) => setRecipe({ ...recipe, title: e.target.value })} placeholder="RECIPE NAME" className="w-full border-b border-[#D6DDD9] bg-transparent p-2 text-2xl font-black uppercase italic outline-none placeholder:text-[#8A958E] focus:border-[#C2410C] sm:text-3xl" />
+                    <p className="text-[9px] font-black uppercase tracking-[0.16em] text-[#5F6B63]">* Each line becomes its own ingredient or instruction line.</p>
                     <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                      <textarea value={recipe.ingredients} onChange={(e) => setRecipe({ ...recipe, ingredients: e.target.value })} placeholder="INGREDIENTS" className="h-48 w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-xs outline-none focus:border-[#FF4500]" />
-                      <textarea value={recipe.directions} onChange={(e) => setRecipe({ ...recipe, directions: e.target.value })} placeholder="DIRECTIONS" className="h-48 w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-xs outline-none focus:border-[#FF4500]" />
+                      <textarea value={recipe.ingredients} onChange={(e) => setRecipe({ ...recipe, ingredients: e.target.value })} placeholder="INGREDIENTS" className="h-48 w-full rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-xs outline-none placeholder:text-[#8A958E] focus:border-[#C2410C]" />
+                      <textarea value={recipe.directions} onChange={(e) => setRecipe({ ...recipe, directions: e.target.value })} placeholder="DIRECTIONS" className="h-48 w-full rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-xs outline-none placeholder:text-[#8A958E] focus:border-[#C2410C]" />
                     </div>
                     <StepMeasurementPreview rows={recipeDirectionRows} />
-                    <textarea value={recipe.notes} onChange={(e) => setRecipe({ ...recipe, notes: e.target.value })} placeholder="NOTES" className="h-32 w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-xs outline-none focus:border-[#FF4500]" />
-                    <button onClick={saveRecipe} className="w-full rounded-xl bg-[#FF4500] p-4 font-black uppercase tracking-widest text-white transition-all shadow-lg hover:bg-[#E63E00]">SAVE TO COOKBOOK</button>
+                    <textarea value={recipe.notes} onChange={(e) => setRecipe({ ...recipe, notes: e.target.value })} placeholder="NOTES" className="h-32 w-full rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-xs outline-none placeholder:text-[#8A958E] focus:border-[#C2410C]" />
+                    <button onClick={saveRecipe} className="w-full rounded-xl bg-[#C2410C] p-4 font-black uppercase tracking-widest text-white shadow-lg transition-all hover:bg-[#9A3412]">SAVE TO COOKBOOK</button>
                   </div>
                 </div>
               ) : selectedRecipe ? (
                 <>
-                  <div className={`flex flex-col border-b border-gray-800 bg-[#1A1A1A] sm:flex-row sm:items-start sm:justify-between lg:flex-shrink-0 ${isCookingMode ? 'gap-3 p-3 sm:p-4' : 'gap-4 p-4 sm:p-6'}`}>
+                  <div className={`flex flex-col border-b border-[#D6DDD9] bg-[#F1F5F3] sm:flex-row sm:items-start sm:justify-between lg:flex-shrink-0 ${isCookingMode ? 'gap-3 p-3 sm:p-4' : 'gap-4 p-4 sm:p-6'}`}>
                     {isEditing ? (
                       <input
                         aria-label="Recipe title"
                         value={selectedRecipe.title || ''}
                         onChange={(e) => setSelectedRecipe({ ...selectedRecipe, title: e.target.value })}
-                        className="min-w-0 flex-1 rounded-xl border border-gray-800 bg-[#0D0D0D] px-4 py-3 text-xl font-black uppercase italic leading-none tracking-tighter text-[#FF4500] outline-none focus:border-[#FF4500] sm:text-2xl"
+                        className="min-w-0 flex-1 rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] px-4 py-3 text-xl font-black uppercase italic leading-none tracking-tighter text-[#C2410C] outline-none focus:border-[#C2410C] sm:text-2xl"
                       />
                     ) : (
-                      <h2 className={`min-w-0 flex-1 font-black uppercase italic leading-none tracking-tighter text-[#FF4500] ${isCookingMode ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>{selectedRecipe.title}</h2>
+                      <h2 className={`min-w-0 flex-1 font-black uppercase italic leading-none tracking-tighter text-[#C2410C] ${isCookingMode ? 'text-lg sm:text-xl' : 'text-xl sm:text-2xl'}`}>{selectedRecipe.title}</h2>
                     )}
                     <div className="flex flex-wrap gap-2">
                       {!isEditing && (
-                        <button onClick={() => setIsCookingMode(!isCookingMode)} className={`rounded-full border px-6 py-1.5 text-[9px] font-black ${isCookingMode ? 'border-[#FF4500] bg-[#FF4500] text-white' : 'border-gray-700 text-gray-500 hover:text-white'}`}>{isCookingMode ? 'Exit' : 'Cook'}</button>
+                        <button onClick={() => setIsCookingMode(!isCookingMode)} className={`rounded-full border px-6 py-1.5 text-[9px] font-black ${isCookingMode ? 'border-[#C2410C] bg-[#C2410C] text-white' : 'border-[#C9D4CE] text-[#5F6B63] hover:text-[#18181B]'}`}>{isCookingMode ? 'Exit' : 'Cook'}</button>
                       )}
                       {!isCookingMode && (
-                        <button onClick={() => setIsEditing(!isEditing)} className="rounded-full border border-gray-700 px-4 py-1.5 text-[9px] font-black text-gray-500 hover:text-white">{isEditing ? 'Cancel' : 'Edit'}</button>
+                        <button onClick={() => setIsEditing(!isEditing)} className="rounded-full border border-[#C9D4CE] px-4 py-1.5 text-[9px] font-black text-[#5F6B63] hover:text-[#18181B]">{isEditing ? 'Cancel' : 'Edit'}</button>
                       )}
                       {!isCookingMode && !isEditing && (
-                        <button onClick={deleteRecipe} className="rounded-full border border-red-900/50 px-4 py-1.5 text-[9px] font-black text-red-900 hover:bg-red-900 hover:text-white">Burn</button>
+                        <button onClick={deleteRecipe} className="rounded-full border border-red-200 px-4 py-1.5 text-[9px] font-black text-red-700 hover:bg-red-700 hover:text-white">Burn</button>
                       )}
                     </div>
                   </div>
@@ -756,22 +756,22 @@ export default function Home() {
                     {isEditing ? (
                       <div className="flex flex-col gap-4 pr-1 sm:pr-2">
                         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-                          <textarea value={selectedRecipe.ingredients || ''} onChange={(e) => setSelectedRecipe({ ...selectedRecipe, ingredients: e.target.value })} className="h-52 rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-xs outline-none focus:border-[#FF4500] sm:h-56" />
-                          <textarea value={selectedRecipe.directions || ''} onChange={(e) => setSelectedRecipe({ ...selectedRecipe, directions: e.target.value })} className="h-52 rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-xs outline-none focus:border-[#FF4500] sm:h-56" />
+                          <textarea value={selectedRecipe.ingredients || ''} onChange={(e) => setSelectedRecipe({ ...selectedRecipe, ingredients: e.target.value })} className="h-52 rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-xs outline-none focus:border-[#C2410C] sm:h-56" />
+                          <textarea value={selectedRecipe.directions || ''} onChange={(e) => setSelectedRecipe({ ...selectedRecipe, directions: e.target.value })} className="h-52 rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-xs outline-none focus:border-[#C2410C] sm:h-56" />
                         </div>
                         <StepMeasurementPreview rows={selectedDirectionRows} />
-                        <textarea value={selectedRecipe.notes || ''} onChange={(e) => setSelectedRecipe({ ...selectedRecipe, notes: e.target.value })} placeholder="NOTES" className="h-32 w-full rounded-xl border border-gray-800 bg-[#0D0D0D] p-4 text-xs outline-none focus:border-[#FF4500]" />
-                        <button onClick={updateRecipe} className="w-full rounded-xl bg-[#FF4500] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#E63E00]">Update Cookbook</button>
+                        <textarea value={selectedRecipe.notes || ''} onChange={(e) => setSelectedRecipe({ ...selectedRecipe, notes: e.target.value })} placeholder="NOTES" className="h-32 w-full rounded-xl border border-[#D6DDD9] bg-[#FAFAF9] p-4 text-xs outline-none placeholder:text-[#8A958E] focus:border-[#C2410C]" />
+                        <button onClick={updateRecipe} className="w-full rounded-xl bg-[#C2410C] p-4 font-black uppercase tracking-widest text-white transition-all hover:bg-[#9A3412]">Update Cookbook</button>
                       </div>
                     ) : isCookingMode ? (
                       <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 pb-6 sm:gap-8 sm:pb-12">
                         <section>
-                          <h4 className="mb-3 text-xs font-black uppercase text-[#FF4500]">Prep Checklist</h4>
+                          <h4 className="mb-3 text-xs font-black uppercase text-[#C2410C]">Prep Checklist</h4>
                           <div className="space-y-2">
                             {selectedIngredientRefs.map((ingredient, i) => (
-                              <div key={`${i}-${ingredient.line}`} onClick={() => setCheckedIngredients({ ...checkedIngredients, [i]: !checkedIngredients[i] })} className={`cursor-pointer rounded-xl border p-2.5 transition-all sm:p-3 ${checkedIngredients[i] ? 'border-transparent bg-black opacity-10' : 'border-gray-800 bg-[#1A1A1A]'}`}>
+                              <div key={`${i}-${ingredient.line}`} onClick={() => setCheckedIngredients({ ...checkedIngredients, [i]: !checkedIngredients[i] })} className={`cursor-pointer rounded-xl border p-2.5 transition-all sm:p-3 ${checkedIngredients[i] ? 'border-[#E4E9E6] bg-[#F1F5F3] opacity-60' : 'border-[#D6DDD9] bg-[#F1F5F3]'}`}>
                                 <div className="flex items-start gap-3">
-                                  <div className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 ${checkedIngredients[i] ? 'border-emerald-500 bg-emerald-500' : 'border-gray-600'}`}>{checkedIngredients[i] && '✓'}</div>
+                                  <div className={`mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded border-2 ${checkedIngredients[i] ? 'border-emerald-600 bg-emerald-600 text-white' : 'border-[#8A958E]'}`}>{checkedIngredients[i] && '✓'}</div>
                                   <span className="text-base leading-snug">{ingredient.line}</span>
                                 </div>
                               </div>
@@ -779,17 +779,17 @@ export default function Home() {
                           </div>
                         </section>
                         <section>
-                          <h4 className="mb-3 text-xs font-black uppercase text-[#FF4500]">The Process</h4>
+                          <h4 className="mb-3 text-xs font-black uppercase text-[#C2410C]">The Process</h4>
                           <div className="space-y-3">
                             {selectedDirectionRows.map(({ step, ingredients }, i) => {
                               return (
-                                <div key={`${i}-${step}`} onClick={() => setCheckedDirections({ ...checkedDirections, [i]: !checkedDirections[i] })} className={`cursor-pointer rounded-xl border-l-4 p-3 transition-all sm:p-4 ${checkedDirections[i] ? 'border-gray-900 bg-black opacity-10' : 'border-[#FF4500] bg-[#1A1A1A]'}`}>
+                                <div key={`${i}-${step}`} onClick={() => setCheckedDirections({ ...checkedDirections, [i]: !checkedDirections[i] })} className={`cursor-pointer rounded-xl border-l-4 p-3 transition-all sm:p-4 ${checkedDirections[i] ? 'border-[#E4E9E6] bg-[#F1F5F3] opacity-60' : 'border-[#C2410C] bg-[#F1F5F3]'}`}>
                                   <p className="text-base leading-relaxed">{step}</p>
                                   {ingredients.length > 0 && (
-                                    <div className="mt-4 space-y-2 border-t border-gray-800 pt-3">
-                                      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-gray-600">Uses</p>
+                                    <div className="mt-4 space-y-2 border-t border-[#D6DDD9] pt-3">
+                                      <p className="text-[9px] font-black uppercase tracking-[0.18em] text-[#5F6B63]">Uses</p>
                                       {ingredients.map((ingredient) => (
-                                        <p key={ingredient} className="text-sm font-black leading-relaxed text-[#FF4500]">{ingredient}</p>
+                                        <p key={ingredient} className="text-sm font-black leading-relaxed text-[#C2410C]">{ingredient}</p>
                                       ))}
                                     </div>
                                   )}
@@ -802,40 +802,40 @@ export default function Home() {
                     ) : (
                       <div className="flex flex-col gap-4 sm:gap-6">
                         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2 lg:gap-6">
-                          <div className="flex flex-col rounded-xl border-2 border-gray-800 bg-[#0D0D0D] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.28)] sm:p-5">
+                          <div className="flex flex-col rounded-xl border-2 border-[#D6DDD9] bg-[#FAFAF9] p-4 shadow-[0_10px_24px_rgba(24,24,27,0.06)] sm:p-5">
                             <div className="mb-5 flex items-center justify-between gap-3">
-                              <h4 className="text-[10px] font-black uppercase tracking-widest text-gray-600">Ingredients</h4>
+                              <h4 className="text-[10px] font-black uppercase tracking-widest text-[#5F6B63]">Ingredients</h4>
                               <div className="flex gap-2 text-[10px] font-black uppercase">
-                                <button onClick={copyCheckedItems} className="text-[#FF4500] hover:underline">Copy</button>
-                                <span className="text-gray-800">/</span>
-                                <button onClick={clearChecks} className="text-gray-500 hover:text-white">Clear</button>
+                                <button onClick={copyCheckedItems} className="text-[#C2410C] hover:underline">Copy</button>
+                                <span className="text-[#8A958E]">/</span>
+                                <button onClick={clearChecks} className="text-[#5F6B63] hover:text-[#18181B]">Clear</button>
                               </div>
                             </div>
                             <div className="max-h-72 space-y-3 overflow-y-auto pr-2 custom-scrollbar lg:flex-1 lg:min-h-0 lg:max-h-none">
                               {selectedIngredientRefs.map((ingredient, i) => (
                                 <div key={`${i}-${ingredient.line}`} className="group flex cursor-pointer items-start gap-3" onClick={() => setCheckedIngredients({ ...checkedIngredients, [i]: !checkedIngredients[i] })}>
-                                  <div className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-all ${checkedIngredients[i] ? 'border-[#FF4500] bg-[#FF4500]' : 'border-gray-700 group-hover:border-gray-500'}`}>
+                                  <div className={`mt-0.5 flex h-4 w-4 flex-shrink-0 items-center justify-center rounded border transition-all ${checkedIngredients[i] ? 'border-[#C2410C] bg-[#C2410C]' : 'border-[#8A958E] group-hover:border-[#5F6B63]'}`}>
                                     {checkedIngredients[i] && <span className="text-[8px] font-bold text-white">✓</span>}
                                   </div>
-                                  <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'italic line-through text-gray-700' : 'text-gray-300'}`}>{ingredient.line}</span>
+                                  <span className={`text-sm leading-tight transition-all ${checkedIngredients[i] ? 'italic line-through text-[#8A958E]' : 'text-[#34403A]'}`}>{ingredient.line}</span>
                                 </div>
                               ))}
                             </div>
                           </div>
-                          <div className="flex flex-col rounded-xl border-2 border-gray-800 bg-[#0D0D0D] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.28)] sm:p-5">
-                            <h4 className="mb-5 text-[10px] font-black uppercase tracking-widest text-gray-600">Directions</h4>
-                            <div className="max-h-80 space-y-4 overflow-y-auto pr-2 text-sm text-gray-400 custom-scrollbar lg:flex-1 lg:min-h-0 lg:max-h-none">
+                          <div className="flex flex-col rounded-xl border-2 border-[#D6DDD9] bg-[#FAFAF9] p-4 shadow-[0_10px_24px_rgba(24,24,27,0.06)] sm:p-5">
+                            <h4 className="mb-5 text-[10px] font-black uppercase tracking-widest text-[#5F6B63]">Directions</h4>
+                            <div className="max-h-80 space-y-4 overflow-y-auto pr-2 text-sm text-[#34403A] custom-scrollbar lg:flex-1 lg:min-h-0 lg:max-h-none">
                               {selectedDirectionRows.map(({ step, ingredients }, i) => {
                                 return (
                                   <div key={`${i}-${step}`} className="flex gap-3">
-                                    <span className="font-black italic text-[#FF4500]">{i + 1}</span>
+                                    <span className="font-black italic text-[#C2410C]">{i + 1}</span>
                                     <div className="min-w-0">
                                       <p>{step}</p>
                                       {ingredients.length > 0 && (
-                                        <div className="mt-2 space-y-1 border-l border-[#FF4500]/35 pl-3">
-                                          <p className="text-[8px] font-black uppercase tracking-[0.18em] text-gray-600">Uses</p>
+                                        <div className="mt-2 space-y-1 border-l border-[#C2410C]/35 pl-3">
+                                          <p className="text-[8px] font-black uppercase tracking-[0.18em] text-[#5F6B63]">Uses</p>
                                           {ingredients.map((ingredient) => (
-                                            <p key={ingredient} className="text-xs font-black leading-relaxed text-[#FF4500]">{ingredient}</p>
+                                            <p key={ingredient} className="text-xs font-black leading-relaxed text-[#C2410C]">{ingredient}</p>
                                           ))}
                                         </div>
                                       )}
@@ -846,9 +846,9 @@ export default function Home() {
                             </div>
                           </div>
                         </div>
-                        <div className="rounded-xl border-2 border-gray-800 bg-[#0D0D0D] p-4 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.025),0_12px_30px_rgba(0,0,0,0.28)] sm:p-5">
-                          <h4 className="mb-4 text-[10px] font-black uppercase tracking-widest text-gray-600">Notes</h4>
-                          <div className="max-h-48 overflow-y-auto pr-2 text-sm leading-relaxed text-gray-400 whitespace-pre-wrap custom-scrollbar">
+                        <div className="rounded-xl border-2 border-[#D6DDD9] bg-[#FAFAF9] p-4 shadow-[0_10px_24px_rgba(24,24,27,0.06)] sm:p-5">
+                          <h4 className="mb-4 text-[10px] font-black uppercase tracking-widest text-[#5F6B63]">Notes</h4>
+                          <div className="max-h-48 overflow-y-auto pr-2 text-sm leading-relaxed text-[#34403A] whitespace-pre-wrap custom-scrollbar">
                             {selectedRecipe.notes?.trim() || 'No field notes yet.'}
                           </div>
                         </div>
@@ -857,7 +857,7 @@ export default function Home() {
                   </div>
                 </>
               ) : (
-                <div className="flex min-h-[320px] flex-1 items-center justify-center p-6 text-center text-[10px] font-black uppercase tracking-[0.4em] text-gray-800 animate-pulse">
+                <div className="flex min-h-[320px] flex-1 items-center justify-center p-6 text-center text-[10px] font-black uppercase tracking-[0.4em] text-[#8A958E] animate-pulse">
                   Select intel from recipe list
                 </div>
               )}

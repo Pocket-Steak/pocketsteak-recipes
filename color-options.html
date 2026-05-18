@@ -1,0 +1,442 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>PocketSteak Color Options</title>
+    <style>
+      :root {
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        color: #111827;
+        background: #eef2f5;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.9), rgba(238, 242, 245, 0.98)),
+          #eef2f5;
+      }
+
+      main {
+        width: min(1180px, calc(100% - 32px));
+        margin: 0 auto;
+        padding: 38px 0 48px;
+      }
+
+      h1 {
+        margin: 0 0 8px;
+        font-size: clamp(2rem, 4vw, 4rem);
+        line-height: 0.92;
+        letter-spacing: 0;
+        text-transform: uppercase;
+        font-style: italic;
+      }
+
+      .intro {
+        margin: 0 0 28px;
+        max-width: 720px;
+        color: #52606d;
+        font-size: 1rem;
+        line-height: 1.55;
+      }
+
+      .palette-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 18px;
+      }
+
+      .palette {
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--app-bg);
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.12);
+      }
+
+      .palette-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 16px;
+        padding: 18px;
+        color: var(--text);
+      }
+
+      .palette h2 {
+        margin: 0;
+        font-size: 1.05rem;
+        letter-spacing: 0;
+      }
+
+      .tag {
+        border-radius: 999px;
+        border: 1px solid var(--border);
+        padding: 6px 10px;
+        background: var(--panel);
+        color: var(--muted);
+        font-size: 0.68rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        white-space: nowrap;
+      }
+
+      .swatches {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        border-block: 1px solid var(--border);
+      }
+
+      .swatch {
+        min-height: 96px;
+        padding: 10px;
+        color: var(--swatch-text);
+        background: var(--swatch);
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;
+        gap: 4px;
+      }
+
+      .swatch strong,
+      .swatch span {
+        text-shadow: 0 1px 14px rgba(0, 0, 0, 0.18);
+      }
+
+      .swatch strong {
+        font-size: 0.7rem;
+        text-transform: uppercase;
+      }
+
+      .swatch span {
+        font-size: 0.72rem;
+        opacity: 0.9;
+      }
+
+      .mock {
+        padding: 18px;
+      }
+
+      .mock-shell {
+        display: grid;
+        grid-template-columns: 130px 1fr;
+        min-height: 220px;
+        overflow: hidden;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--panel);
+      }
+
+      .mock-sidebar {
+        padding: 14px;
+        border-right: 1px solid var(--border);
+        background: var(--raised);
+      }
+
+      .mock-logo {
+        margin-bottom: 16px;
+        color: var(--accent);
+        font-size: 0.78rem;
+        font-weight: 950;
+        font-style: italic;
+        text-transform: uppercase;
+      }
+
+      .mock-pill,
+      .mock-pill-active {
+        height: 32px;
+        border-radius: 999px;
+        margin-bottom: 10px;
+      }
+
+      .mock-pill {
+        border: 1px solid var(--border);
+        background: var(--panel);
+      }
+
+      .mock-pill-active {
+        background: var(--accent);
+      }
+
+      .mock-content {
+        padding: 16px;
+        color: var(--text);
+      }
+
+      .mock-title {
+        margin: 0 0 12px;
+        color: var(--accent);
+        font-size: 1.45rem;
+        line-height: 1;
+        font-style: italic;
+        text-transform: uppercase;
+      }
+
+      .mock-copy {
+        margin: 0 0 18px;
+        color: var(--muted);
+        font-size: 0.86rem;
+        line-height: 1.5;
+      }
+
+      .mock-card-grid {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 10px;
+      }
+
+      .mock-card {
+        min-height: 88px;
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        background: var(--raised);
+        padding: 12px;
+      }
+
+      .mock-label {
+        margin-bottom: 10px;
+        color: var(--muted);
+        font-size: 0.62rem;
+        font-weight: 850;
+        text-transform: uppercase;
+      }
+
+      .mock-line,
+      .mock-line-short {
+        height: 8px;
+        border-radius: 999px;
+        margin-bottom: 9px;
+        background: color-mix(in srgb, var(--text) 22%, transparent);
+      }
+
+      .mock-line-short {
+        width: 62%;
+      }
+
+      .mock-accent-line {
+        width: 42%;
+        height: 8px;
+        border-radius: 999px;
+        background: var(--accent);
+      }
+
+      @media (max-width: 860px) {
+        .palette-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      @media (max-width: 520px) {
+        main {
+          width: min(100% - 20px, 1180px);
+          padding-top: 22px;
+        }
+
+        .palette-header {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .swatches {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .mock-shell {
+          grid-template-columns: 1fr;
+        }
+
+        .mock-sidebar {
+          border-right: 0;
+          border-bottom: 1px solid var(--border);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>PocketSteak palettes</h1>
+      <p class="intro">
+        Four lighter directions with the same basic app structure: page background,
+        panels, recipe cards, muted helper text, and primary action color.
+      </p>
+
+      <section class="palette-grid" aria-label="Color palette options">
+        <article
+          class="palette"
+          style="
+            --app-bg: #f8fafc;
+            --panel: #ffffff;
+            --raised: #f1f5f9;
+            --border: #cbd5e1;
+            --text: #0f172a;
+            --muted: #475569;
+            --accent: #e11d48;
+          "
+        >
+          <div class="palette-header">
+            <h2>1. Clean Kitchen</h2>
+            <span class="tag">Recommended</span>
+          </div>
+          <div class="swatches">
+            <div class="swatch" style="--swatch: #f8fafc; --swatch-text: #0f172a"><strong>Background</strong><span>#F8FAFC</span></div>
+            <div class="swatch" style="--swatch: #ffffff; --swatch-text: #0f172a"><strong>Panel</strong><span>#FFFFFF</span></div>
+            <div class="swatch" style="--swatch: #0f172a; --swatch-text: #ffffff"><strong>Text</strong><span>#0F172A</span></div>
+            <div class="swatch" style="--swatch: #e11d48; --swatch-text: #ffffff"><strong>Accent</strong><span>#E11D48</span></div>
+          </div>
+          <div class="mock">
+            <div class="mock-shell">
+              <div class="mock-sidebar">
+                <div class="mock-logo">PocketSteak</div>
+                <div class="mock-pill-active"></div>
+                <div class="mock-pill"></div>
+                <div class="mock-pill"></div>
+              </div>
+              <div class="mock-content">
+                <h3 class="mock-title">Ribeye Dinner</h3>
+                <p class="mock-copy">Bright, crisp, and highest contrast. This is the clearest read.</p>
+                <div class="mock-card-grid">
+                  <div class="mock-card"><div class="mock-label">Ingredients</div><div class="mock-line"></div><div class="mock-line-short"></div><div class="mock-accent-line"></div></div>
+                  <div class="mock-card"><div class="mock-label">Directions</div><div class="mock-line"></div><div class="mock-line-short"></div><div class="mock-accent-line"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="palette"
+          style="
+            --app-bg: #f7faf8;
+            --panel: #ffffff;
+            --raised: #eef5f0;
+            --border: #c9d8cd;
+            --text: #17211b;
+            --muted: #607066;
+            --accent: #0f766e;
+          "
+        >
+          <div class="palette-header">
+            <h2>2. Smoke &amp; Sage</h2>
+            <span class="tag">Soft</span>
+          </div>
+          <div class="swatches">
+            <div class="swatch" style="--swatch: #f7faf8; --swatch-text: #17211b"><strong>Background</strong><span>#F7FAF8</span></div>
+            <div class="swatch" style="--swatch: #ffffff; --swatch-text: #17211b"><strong>Panel</strong><span>#FFFFFF</span></div>
+            <div class="swatch" style="--swatch: #17211b; --swatch-text: #ffffff"><strong>Text</strong><span>#17211B</span></div>
+            <div class="swatch" style="--swatch: #0f766e; --swatch-text: #ffffff"><strong>Accent</strong><span>#0F766E</span></div>
+          </div>
+          <div class="mock">
+            <div class="mock-shell">
+              <div class="mock-sidebar">
+                <div class="mock-logo">PocketSteak</div>
+                <div class="mock-pill-active"></div>
+                <div class="mock-pill"></div>
+                <div class="mock-pill"></div>
+              </div>
+              <div class="mock-content">
+                <h3 class="mock-title">Ribeye Dinner</h3>
+                <p class="mock-copy">Calmer and more natural. Less punchy, very comfortable to scan.</p>
+                <div class="mock-card-grid">
+                  <div class="mock-card"><div class="mock-label">Ingredients</div><div class="mock-line"></div><div class="mock-line-short"></div><div class="mock-accent-line"></div></div>
+                  <div class="mock-card"><div class="mock-label">Directions</div><div class="mock-line"></div><div class="mock-line-short"></div><div class="mock-accent-line"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="palette"
+          style="
+            --app-bg: #f3f6f8;
+            --panel: #ffffff;
+            --raised: #e8eef2;
+            --border: #c5d0d8;
+            --text: #111827;
+            --muted: #52606d;
+            --accent: #2563eb;
+          "
+        >
+          <div class="palette-header">
+            <h2>3. Stainless Prep</h2>
+            <span class="tag">Modern</span>
+          </div>
+          <div class="swatches">
+            <div class="swatch" style="--swatch: #f3f6f8; --swatch-text: #111827"><strong>Background</strong><span>#F3F6F8</span></div>
+            <div class="swatch" style="--swatch: #ffffff; --swatch-text: #111827"><strong>Panel</strong><span>#FFFFFF</span></div>
+            <div class="swatch" style="--swatch: #111827; --swatch-text: #ffffff"><strong>Text</strong><span>#111827</span></div>
+            <div class="swatch" style="--swatch: #2563eb; --swatch-text: #ffffff"><strong>Accent</strong><span>#2563EB</span></div>
+          </div>
+          <div class="mock">
+            <div class="mock-shell">
+              <div class="mock-sidebar">
+                <div class="mock-logo">PocketSteak</div>
+                <div class="mock-pill-active"></div>
+                <div class="mock-pill"></div>
+                <div class="mock-pill"></div>
+              </div>
+              <div class="mock-content">
+                <h3 class="mock-title">Ribeye Dinner</h3>
+                <p class="mock-copy">Cooler and cleaner. Feels more like a productivity tool.</p>
+                <div class="mock-card-grid">
+                  <div class="mock-card"><div class="mock-label">Ingredients</div><div class="mock-line"></div><div class="mock-line-short"></div><div class="mock-accent-line"></div></div>
+                  <div class="mock-card"><div class="mock-label">Directions</div><div class="mock-line"></div><div class="mock-line-short"></div><div class="mock-accent-line"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article
+          class="palette"
+          style="
+            --app-bg: #fafaf9;
+            --panel: #ffffff;
+            --raised: #f1f5f3;
+            --border: #d6ddd9;
+            --text: #18181b;
+            --muted: #5f6b63;
+            --accent: #c2410c;
+          "
+        >
+          <div class="palette-header">
+            <h2>4. Firebrick Light</h2>
+            <span class="tag">PocketSteak</span>
+          </div>
+          <div class="swatches">
+            <div class="swatch" style="--swatch: #fafaf9; --swatch-text: #18181b"><strong>Background</strong><span>#FAFAF9</span></div>
+            <div class="swatch" style="--swatch: #ffffff; --swatch-text: #18181b"><strong>Panel</strong><span>#FFFFFF</span></div>
+            <div class="swatch" style="--swatch: #18181b; --swatch-text: #ffffff"><strong>Text</strong><span>#18181B</span></div>
+            <div class="swatch" style="--swatch: #c2410c; --swatch-text: #ffffff"><strong>Accent</strong><span>#C2410C</span></div>
+          </div>
+          <div class="mock">
+            <div class="mock-shell">
+              <div class="mock-sidebar">
+                <div class="mock-logo">PocketSteak</div>
+                <div class="mock-pill-active"></div>
+                <div class="mock-pill"></div>
+                <div class="mock-pill"></div>
+              </div>
+              <div class="mock-content">
+                <h3 class="mock-title">Ribeye Dinner</h3>
+                <p class="mock-copy">Keeps the steakhouse energy while getting much easier to read.</p>
+                <div class="mock-card-grid">
+                  <div class="mock-card"><div class="mock-label">Ingredients</div><div class="mock-line"></div><div class="mock-line-short"></div><div class="mock-accent-line"></div></div>
+                  <div class="mock-card"><div class="mock-label">Directions</div><div class="mock-line"></div><div class="mock-line-short"></div><div class="mock-accent-line"></div></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
